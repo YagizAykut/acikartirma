@@ -1,0 +1,151 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>Açık Artırma - Ana Sayfa</title>
+</h:head>
+<h:body>
+    <!-- GİRİŞ YAPILMIŞSA GÖSTERİLECEK ALAN -->
+    <h:panelGroup rendered="#{userBean.loggedIn}">
+
+        <!-- HATA VE UYARI MESAJLARI İÇİN ALAN -->
+        <h:messages globalOnly="true" style="color: white; background-color: #dc3545; padding: 10px; border-radius: 5px; list-style-type: none; font-weight: bold; margin-bottom: 15px;" />
+
+        <!-- ÜST BİLGİ, CÜZDAN VE ÇIKIŞ -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #e9ecef; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div>
+                <h2 style="margin: 0 0 5px 0;">Hoş geldin, #{userBean.currentUser.username}!</h2>
+                <h:outputText value="Cüzdan: " style="font-size: 16px; font-weight: bold; color: #555;" />
+                <h:outputText value="#{userBean.currentUser.balance} TL" style="color: #28a745; font-size: 20px; font-weight: bold;" />
+            </div>
+
+            <h:form style="display: flex; gap: 10px; align-items: center; margin: 0;">
+                <h:inputText value="#{userBean.loadAmount}" size="8" title="Yüklenecek Tutar" required="true" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;" />
+                <h:commandButton value="Bakiye Yükle" action="#{userBean.loadBalance}" style="background-color: #28a745; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;" />
+
+                <h:commandButton value="Güvenli Çıkış" action="#{userBean.logout}" style="margin-left: 20px; background-color: #dc3545; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer;" />
+            </h:form>
+        </div>
+
+        <!-- YENİ ÜRÜN EKLEME FORMU -->
+        <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px;">
+            <h3>Yeni Açık Artırma Başlat</h3>
+            <h:form>
+                <h:panelGrid columns="2">
+                    <h:outputLabel value="Ürün Adı:" />
+                    <h:inputText value="#{productBean.name}" required="true" />
+
+                    <h:outputLabel value="Açıklama:" />
+                    <h:inputText value="#{productBean.description}" required="true" />
+
+                    <h:outputLabel value="Başlangıç Fiyatı (TL):" />
+                    <h:inputText value="#{productBean.startingPrice}" required="true" />
+
+                    <h:outputLabel value="Açık Artırma Süresi (Dakika):" />
+                    <h:inputText value="#{productBean.durationInMinutes}" required="true" />
+
+                    <h:outputLabel value="Görsel URL (İsteğe Bağlı):" />
+                    <h:inputText value="#{productBean.imagePath}" required="false" />
+
+                    <h:outputText value="" />
+                    <h:commandButton value="Ürünü Ekle" action="#{productBean.saveProduct}" style="background-color: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;" />
+                </h:panelGrid>
+            </h:form>
+        </div>
+
+        <!-- ÜRÜNLERİ LİSTELEME VE TEKLİF TABLOSU -->
+        <h3>Güncel Açık Artırmalar</h3>
+        <h:form id="auctionForm">
+            <h:dataTable value="#{productBean.allProducts}" var="product" border="1" cellpadding="8" style="width: 100%; text-align: left; border-collapse: collapse;">
+
+                <h:column>
+                    <f:facet name="header">Ürün Adı</f:facet>
+                    <strong>#{product.name}</strong><br/>
+                    <small style="color: gray;">#{product.description}</small>
+                </h:column>
+
+                <h:column>
+                    <f:facet name="header">Bitiş Zamanı</f:facet>
+                    <h:outputText value="#{product.endTime}">
+                        <f:convertDateTime type="localDateTime" pattern="dd.MM.yyyy HH:mm" />
+                    </h:outputText>
+                </h:column>
+
+                <h:column>
+                    <f:facet name="header">Güncel Fiyat</f:facet>
+                    <strong style="color: green;">#{product.currentPrice} TL</strong>
+                </h:column>
+
+                <h:column>
+                    <f:facet name="header">Satıcı</f:facet>
+                    #{product.seller.username}
+                </h:column>
+
+                <!-- YENİLENEN İŞLEM SÜTUNU -->
+                <h:column>
+                    <f:facet name="header">İşlem / Durum</f:facet>
+
+                    <!-- 1. DURUM: Ürün Aktif ve Başkasının (Teklif Verilebilir) -->
+                    <h:panelGroup rendered="#{product.status eq 'ACTIVE' and product.seller.username ne userBean.currentUser.username}">
+                        <h:inputText value="#{product.newBidAmount}" size="6" style="padding: 4px;" />
+                        <h:commandButton value="Teklif İlet" action="#{productBean.placeBid(product)}" style="background-color: #007bff; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px; border-radius: 3px;">
+                            <f:ajax execute="@form" render="@none" />
+                        </h:commandButton>
+                    </h:panelGroup>
+
+                    <!-- 2. DURUM: Ürün Aktif ama Kişinin Kendi Ürünü -->
+                    <h:outputText value="Senin Ürünün (Devam Ediyor)" rendered="#{product.status eq 'ACTIVE' and product.seller.username eq userBean.currentUser.username}" style="color: gray; font-style: italic;" />
+
+                    <!-- 3. DURUM: Ürün Satıldı -->
+                    <h:panelGroup rendered="#{product.status eq 'SOLD'}">
+                        <span style="color: #28a745; font-weight: bold;">Satıldı</span><br/>
+                        <small>Kazanan: <strong>#{product.winner.username}</strong></small>
+                    </h:panelGroup>
+
+                    <!-- 4. DURUM: Süresi Doldu ve Satılmadı -->
+                    <h:panelGroup rendered="#{product.status eq 'EXPIRED'}">
+                        <span style="color: #dc3545; font-weight: bold;">Süresi Doldu</span><br/>
+                        <small style="color: gray;">Alıcı Çıkmadı</small>
+                    </h:panelGroup>
+
+                </h:column>
+
+            </h:dataTable>
+        </h:form>
+
+    </h:panelGroup>
+
+    <!-- GİRİŞ YAPILMAMIŞSA GÖSTERİLECEK ALAN -->
+    <h:panelGroup rendered="#{!userBean.loggedIn}">
+        <div style="text-align: center; margin-top: 50px;">
+            <h2>Sistemi görebilmek için giriş yapmalısınız.</h2>
+            <h:link value="Giriş Yap" outcome="login" /> |
+            <h:link value="Kayıt Ol" outcome="register" />
+        </div>
+    </h:panelGroup>
+
+    <!-- WEBSOCKET BİLDİRİM EKRANI -->
+    <div id="notificationToast" style="display:none; position:fixed; top:20px; right:20px; background-color:#4CAF50; color:white; padding:15px; border-radius:5px; z-index:1000; font-weight:bold; box-shadow: 0px 4px 6px rgba(0,0,0,0.3); font-size: 16px;">
+    </div>
+
+    <script type="text/javascript">
+        if ("#{userBean.loggedIn}" === "true") {
+            var wsUri = "ws://" + document.location.host + "/AcikArtirma-1.0-SNAPSHOT/auction";
+            var websocket = new WebSocket(wsUri);
+
+            websocket.onmessage = function(event) {
+                var toast = document.getElementById("notificationToast");
+                toast.innerHTML = event.data;
+                toast.style.display = "block";
+
+                setTimeout(function() {
+                    window.location.reload();
+                }, 3000);
+            };
+        }
+    </script>
+
+</h:body>
+</html>

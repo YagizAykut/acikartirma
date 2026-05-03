@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>Giriş Yap</title>
+</h:head>
+<h:body>
+    <h2>Sisteme Giriş</h2>
+    <h:form>
+        <h:messages globalOnly="true" style="color:red; list-style-type:none;" />
+
+        <h:panelGrid columns="2">
+            <h:outputLabel value="Kullanıcı Adı:" />
+            <h:inputText value="#{userBean.username}" required="true"
+                         requiredMessage="Lütfen kullanıcı adınızı girin." />
+
+            <h:outputLabel value="Şifre:" />
+            <h:inputSecret value="#{userBean.password}" required="true"
+                           requiredMessage="Lütfen şifrenizi girin." />
+
+            <h:commandButton value="Giriş Yap" action="#{userBean.login}" />
+        </h:panelGrid>
+
+        <br/>
+        <h:link value="Hesabın yok mu? Buradan kayıt ol" outcome="register" />
+    </h:form>
+</h:body>
+</html>

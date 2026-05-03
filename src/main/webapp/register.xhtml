@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>Kayıt Ol</title>
+</h:head>
+<h:body>
+    <h2>Açık Artırma - Yeni Kullanıcı Kaydı</h2>
+    <h:form>
+        <h:messages globalOnly="true" style="color:red; list-style-type:none;" />
+
+        <h:panelGrid columns="2" cellpadding="5">
+
+            <h:outputLabel value="Adınız:" />
+            <h:inputText value="#{userBean.firstName}" required="true"
+                         requiredMessage="Ad alanı boş bırakılamaz." />
+
+            <h:outputLabel value="Soyadınız:" />
+            <h:inputText value="#{userBean.lastName}" required="true"
+                         requiredMessage="Soyad alanı boş bırakılamaz." />
+
+            <h:outputLabel value="Kullanıcı Adı:" />
+            <h:inputText value="#{userBean.username}" required="true"
+                         requiredMessage="Kullanıcı adı gerekli." />
+
+            <h:outputLabel value="E-posta:" />
+            <h:inputText value="#{userBean.email}" required="true"
+                         requiredMessage="E-posta gerekli." />
+
+            <h:outputLabel value="Telefon Numarası:" />
+            <h:inputText value="#{userBean.phoneNumber}" required="true"
+                         requiredMessage="Telefon numarası gerekli." />
+
+            <h:outputLabel value="Şifre:" />
+            <h:inputSecret value="#{userBean.password}" required="true"
+                           requiredMessage="Şifre gerekli." />
+
+            <h:outputText value="" /> <!-- Butonu hizalamak için boşluk -->
+            <h:commandButton value="Kayıt Ol" action="#{userBean.register}" />
+
+        </h:panelGrid>
+
+        <br/>
+        <h:link value="Zaten bir hesabın var mı? Giriş yap" outcome="login" />
+    </h:form>
+</h:body>
+</html>
