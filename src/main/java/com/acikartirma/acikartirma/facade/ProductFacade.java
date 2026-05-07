@@ -1,15 +1,16 @@
 package com.acikartirma.acikartirma.facade;
 
 import com.acikartirma.acikartirma.entity.Product;
-import com.acikartirma.acikartirma.entity.ProductStatus;
+import com.acikartirma.acikartirma.enums.ProductStatus;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.acikartirma.acikartirma.facadelocal.ProductFacadeLocal;
 
 @Stateless
-public class ProductFacade {
+public class ProductFacade implements ProductFacadeLocal {
 
     @PersistenceContext(unitName = "default")
     private EntityManager em;
@@ -30,7 +31,7 @@ public class ProductFacade {
         return em.createQuery("SELECT p FROM Product p ORDER BY p.id DESC", Product.class).getResultList();
     }
 
-    // YENİ EKLENEN METOT: Zamanlayıcı bot için süresi dolmuş ama hala ACTIVE olan ürünleri bulur
+
     public List<Product> findExpiredActiveProducts(LocalDateTime now) {
         return em.createQuery("SELECT p FROM Product p WHERE p.status = :status AND p.endTime < :now", Product.class)
                 .setParameter("status", ProductStatus.ACTIVE)

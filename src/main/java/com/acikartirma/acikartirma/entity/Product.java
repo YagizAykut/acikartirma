@@ -1,5 +1,6 @@
 package com.acikartirma.acikartirma.entity;
 
+import com.acikartirma.acikartirma.enums.ProductStatus;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -18,32 +19,32 @@ public class Product implements Serializable {
 
     private String description;
 
-    // Satıcının istediği ilk fiyat
+
     @Column(name = "starting_price", nullable = false)
     private BigDecimal startingPrice;
 
-    // Gelen tekliflerle artacak olan anlık fiyat
+
     @Column(name = "current_price")
     private BigDecimal currentPrice;
 
-    // Ne zaman başlayacak?
+
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
 
-    // Ne zaman bitecek?
+
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
-    // Ürünün fotoğraf linki
+
     @Column(name = "image_path")
     private String imagePath;
 
-    // Ürünün anlık durumu (Varsayılan olarak ACTIVE başlar)
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProductStatus status = ProductStatus.ACTIVE;
 
-    // Açık artırmayı kazanan kişi (Başlangıçta boştur)
+
     @ManyToOne
     @JoinColumn(name = "winner_id")
     private User winner;
@@ -61,7 +62,7 @@ public class Product implements Serializable {
     public Product() {
     }
 
-    // --- GETTER VE SETTER ---
+
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

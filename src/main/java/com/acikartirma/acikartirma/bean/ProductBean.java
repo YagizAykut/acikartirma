@@ -3,12 +3,8 @@ package com.acikartirma.acikartirma.bean;
 import com.acikartirma.acikartirma.entity.Bid;
 import com.acikartirma.acikartirma.entity.Product;
 import com.acikartirma.acikartirma.entity.Transaction;
-import com.acikartirma.acikartirma.entity.TransactionType;
+import com.acikartirma.acikartirma.enums.TransactionType;
 import com.acikartirma.acikartirma.entity.User;
-import com.acikartirma.acikartirma.facade.BidFacade;
-import com.acikartirma.acikartirma.facade.ProductFacade;
-import com.acikartirma.acikartirma.facade.TransactionFacade;
-import com.acikartirma.acikartirma.facade.UserFacade;
 import com.acikartirma.acikartirma.websocket.AuctionWebSocket;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.EJB;
@@ -21,22 +17,26 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.acikartirma.acikartirma.facadelocal.ProductFacadeLocal;
+import com.acikartirma.acikartirma.facadelocal.BidFacadeLocal;
+import com.acikartirma.acikartirma.facadelocal.UserFacadeLocal;
+import com.acikartirma.acikartirma.facadelocal.TransactionFacadeLocal;
 
 @Named
 @ViewScoped
 public class ProductBean implements Serializable {
 
     @EJB
-    private ProductFacade productFacade;
+    private ProductFacadeLocal productFacade;
 
     @EJB
-    private BidFacade bidFacade;
+    private BidFacadeLocal bidFacade;
 
     @EJB
-    private UserFacade userFacade;
+    private UserFacadeLocal userFacade;
 
     @EJB
-    private TransactionFacade transactionFacade; // FİNANSAL LOGLAMA İÇİN EKLENDİ
+    private TransactionFacadeLocal transactionFacade;
 
     @Inject
     private UserBean userBean;
@@ -75,10 +75,37 @@ public class ProductBean implements Serializable {
         return "index?faces-redirect=true";
     }
 
+    // YENİ EKLENEN DELETE (SİLME) METODU
+    public void deleteProduct(Product product) {
+        // 1. Güvenlik: Kullanıcı sadece kendi ürününü mü siliyor?
+        if (!product.getSeller().getUsername().equals(userBean.getCurrentUser().getUsername())) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata: Sadece kendi eklediğiniz ürünleri silebilirsiniz!", null));
+            return;
+        }
+
+        // 2. İş Kuralı: Ürüne teklif verilmiş mi?
+        List<Bid> bids = bidFacade.findBidsByProduct(product.getId());
+        if (bids != null && !bids.isEmpty()) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "İşlem Reddedildi: Bu ürüne teklif verildiği için ihale iptal edilemez!", null));
+            return;
+        }
+
+        // 3. Silme İşlemi ve Tabloyu Güncelleme
+        try {
+            productFacade.remove(product);
+            productList = productFacade.findAll(); // Tabloyu anında güncellemek için listeyi yeniliyoruz
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Başarılı: İhale iptal edildi ve ürün silindi.", null));
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata: Ürün silinirken sistemsel bir sorun oluştu.", null));
+        }
+    }
+
     public void placeBid(Product product) {
         BigDecimal newBid = product.getNewBidAmount();
-        User currentUser = userBean.getCurrentUser();
-
         if (newBid == null) return;
 
         if (LocalDateTime.now().isAfter(product.getEndTime())) {
@@ -89,35 +116,58 @@ public class ProductBean implements Serializable {
 
         try {
             if (newBid.compareTo(product.getCurrentPrice()) > 0) {
-                if (currentUser.getBalance().compareTo(newBid) < 0) {
+
+                User currentUser = userFacade.findByUsername(userBean.getCurrentUser().getUsername());
+
+                List<Bid> pastBids = bidFacade.findBidsByProduct(product.getId());
+                User previousBidder = null;
+                BigDecimal refundAmount = BigDecimal.ZERO;
+                boolean isOwnBid = false;
+
+                if (pastBids != null && !pastBids.isEmpty()) {
+                    Bid lastBid = pastBids.get(0);
+                    previousBidder = lastBid.getBidder();
+                    refundAmount = lastBid.getAmount();
+
+                    if (previousBidder.getId().equals(currentUser.getId())) {
+                        isOwnBid = true;
+                    }
+                }
+
+                BigDecimal availablePower = currentUser.getBalance();
+                if (isOwnBid) {
+                    availablePower = availablePower.add(refundAmount);
+                }
+
+                if (availablePower.compareTo(newBid) < 0) {
                     FacesContext.getCurrentInstance().addMessage(null,
                             new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata: Yetersiz Bakiye!", null));
                     return;
                 }
 
-                // İADE MANTIĞI VE LOGU
-                List<Bid> pastBids = bidFacade.findBidsByProduct(product.getId());
                 if (pastBids != null && !pastBids.isEmpty()) {
-                    Bid lastBid = pastBids.get(0);
-                    User previousBidder = lastBid.getBidder();
-                    BigDecimal refundAmount = lastBid.getAmount();
-
-                    previousBidder.setBalance(previousBidder.getBalance().add(refundAmount));
-                    userFacade.update(previousBidder);
-
-                    // --- İŞLEMİ LOGLA (BID_REFUND) ---
-                    Transaction refundTx = new Transaction();
-                    refundTx.setAmount(refundAmount);
-                    refundTx.setType(TransactionType.BID_REFUND);
-                    refundTx.setUser(previousBidder);
-                    transactionFacade.create(refundTx);
+                    if (isOwnBid) {
+                        currentUser.setBalance(currentUser.getBalance().add(refundAmount));
+                        Transaction refundTx = new Transaction();
+                        refundTx.setAmount(refundAmount);
+                        refundTx.setType(TransactionType.BID_REFUND);
+                        refundTx.setUser(currentUser);
+                        transactionFacade.create(refundTx);
+                    } else {
+                        previousBidder.setBalance(previousBidder.getBalance().add(refundAmount));
+                        userFacade.update(previousBidder);
+                        Transaction refundTx = new Transaction();
+                        refundTx.setAmount(refundAmount);
+                        refundTx.setType(TransactionType.BID_REFUND);
+                        refundTx.setUser(previousBidder);
+                        transactionFacade.create(refundTx);
+                    }
                 }
 
-                // KESİNTİ MANTIĞI VE LOGU
                 currentUser.setBalance(currentUser.getBalance().subtract(newBid));
                 userFacade.update(currentUser);
+                userBean.getCurrentUser().setBalance(currentUser.getBalance());
 
-                // --- İŞLEMİ LOGLA (BID_DEDUCTION) ---
                 Transaction deductTx = new Transaction();
                 deductTx.setAmount(newBid);
                 deductTx.setType(TransactionType.BID_DEDUCTION);
@@ -135,8 +185,8 @@ public class ProductBean implements Serializable {
 
                 AuctionWebSocket.broadcast("💰 Yeni Teklif! " + product.getName() + " için " + newBid + " TL teklif verildi!");
             }
-        } catch (jakarta.persistence.OptimisticLockException e) {
-            System.out.println("Çakışma tespit edildi!");
+        } catch (Exception e) {
+            System.out.println("Teklif verilirken bir hata oluştu: " + e.getMessage());
         }
     }
 

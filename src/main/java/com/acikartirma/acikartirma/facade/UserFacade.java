@@ -5,9 +5,10 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import com.acikartirma.acikartirma.facadelocal.UserFacadeLocal;
 
 @Stateless
-public class UserFacade {
+public class UserFacade implements UserFacadeLocal {
 
     @PersistenceContext(unitName = "default")
     private EntityManager em;

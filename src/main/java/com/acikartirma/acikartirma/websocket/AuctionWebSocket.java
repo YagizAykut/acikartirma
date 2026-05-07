@@ -7,10 +7,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-@ServerEndpoint("/auction") // Tarayıcıdan bu adrese bağlanacağız
+@ServerEndpoint("/auction")
 public class AuctionWebSocket {
 
-    // Bağlı olan tüm kullanıcıların (session) listesi
+
     private static Set<Session> clients = Collections.synchronizedSet(new HashSet<>());
 
     @OnOpen
@@ -25,7 +25,7 @@ public class AuctionWebSocket {
 
     @OnMessage
     public void onMessage(String message, Session session) {
-        // Bir mesaj geldiğinde (teklif verildiğinde) tüm kullanıcılara yay
+
         broadcast(message);
     }
 

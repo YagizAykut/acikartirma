@@ -5,9 +5,10 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
+import com.acikartirma.acikartirma.facadelocal.TransactionFacadeLocal;
 
 @Stateless
-public class TransactionFacade {
+public class TransactionFacade implements TransactionFacadeLocal {
 
     @PersistenceContext(unitName = "default")
     private EntityManager em;
