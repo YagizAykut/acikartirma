@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>Açık Artırma - Profilim</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .card { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 25px; }
+        .card-title { margin-top: 0; margin-bottom: 20px; color: #2c3e50; font-size: 20px; border-bottom: 2px solid #f1f3f5; padding-bottom: 10px; }
+
+        .header-card { display: flex; justify-content: space-between; align-items: center; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.3s; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-primary:hover { background-color: #0056b3; }
+
+        .modern-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .modern-table th { background-color: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6; }
+        .modern-table td { padding: 12px; border-bottom: 1px solid #e9ecef; }
+
+        .type-deposit { color: #28a745; font-weight: bold; }
+        .type-deduction { color: #dc3545; font-weight: bold; }
+        .type-refund { color: #007bff; font-weight: bold; }
+    </style>
+</h:head>
+<h:body>
+    <h:panelGroup rendered="#{userBean.loggedIn}">
+        <div class="container">
+            <div class="card header-card">
+                <div>
+                    <h2 style="margin:0;">Profil ve Hesap Geçmişi</h2>
+                    <p style="color: #6c757d; margin: 5px 0 0 0;">@#{userBean.currentUser.username} | #{userBean.currentUser.firstName} #{userBean.currentUser.lastName}</p>
+                </div>
+                <h:link value="Ana Sayfaya Dön" outcome="index" styleClass="btn btn-primary" />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="card">
+                    <h3 class="card-title">Cüzdan Hareketleri</h3>
+                    <h:dataTable value="#{profileBean.transactions}" var="tx" styleClass="modern-table">
+                        <h:column>
+                            <f:facet name="header">Tarih</f:facet>
+                            <h:outputText value="#{tx.transactionDate}">
+                                <f:convertDateTime type="localDateTime" pattern="dd.MM.yy HH:mm" />
+                            </h:outputText>
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Tür</f:facet>
+                            <h:outputText value="#{tx.type}" styleClass="#{tx.type eq 'DEPOSIT' or tx.type eq 'BID_REFUND' ? 'type-deposit' : 'type-deduction'}" />
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Tutar</f:facet>
+                            <strong>#{tx.amount} TL</strong>
+                        </h:column>
+                    </h:dataTable>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Verilen Teklifler</h3>
+                    <h:dataTable value="#{profileBean.bids}" var="bid" styleClass="modern-table">
+                        <h:column>
+                            <f:facet name="header">Ürün</f:facet>
+                            #{bid.product.name}
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Zaman</f:facet>
+                            <h:outputText value="#{bid.bidTime}">
+                                <f:convertDateTime type="localDateTime" pattern="dd.MM.yy HH:mm" />
+                            </h:outputText>
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Teklif</f:facet>
+                            <strong>#{bid.amount} TL</strong>
+                        </h:column>
+                    </h:dataTable>
+                </div>
+            </div>
+        </div>
+    </h:panelGroup>
+
+    <h:panelGroup rendered="#{!userBean.loggedIn}">
+        <div style="text-align:center; margin-top:50px;">
+            <h2>Yetkisiz Erişim! Lütfen giriş yapın.</h2>
+            <h:link value="Giriş Sayfası" outcome="login" styleClass="btn btn-primary" />
+        </div>
+    </h:panelGroup>
+</h:body>
+</html>

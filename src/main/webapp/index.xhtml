@@ -105,6 +105,9 @@
         .btn-primary { background-color: #007bff; color: white; }
         .btn-primary:hover { background-color: #0069d9; }
 
+        .btn-info { background-color: #17a2b8; color: white; }
+        .btn-info:hover { background-color: #138496; }
+
         .product-form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -186,6 +189,17 @@
             font-weight: 500;
         }
 
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #bee5eb;
+            list-style-type: none;
+            font-weight: 500;
+        }
+
         .unauthorized-card {
             text-align: center;
             padding: 50px;
@@ -244,7 +258,7 @@
     <h:panelGroup rendered="#{userBean.loggedIn}">
         <div class="container">
 
-            <h:messages globalOnly="true" styleClass="alert-error" />
+            <h:messages globalOnly="true" errorClass="alert-error" infoClass="alert-info" />
 
             <div class="card header-card">
                 <div class="user-info">
@@ -253,6 +267,8 @@
                 </div>
 
                 <h:form styleClass="action-group">
+                    <h:link value="Profilim" outcome="profile" styleClass="btn btn-info" />
+
                     <h:inputText value="#{userBean.loadAmount}" styleClass="form-control" html5:placeholder="Tutar (TL)" required="true" />
                     <h:commandButton value="Bakiye Yükle" action="#{userBean.loadBalance}" styleClass="btn btn-success" />
                     <h:commandButton value="Güvenli Çıkış" action="#{userBean.logout}" immediate="true" styleClass="btn btn-danger" />
@@ -401,6 +417,15 @@
             var websocket = new WebSocket(wsUri);
 
             websocket.onmessage = function(event) {
+                // Veritabanı (Commit) işleminin tamamlanması için 1.5 saniye (1500ms) bekle!
+                if (event.data === "RELOAD_PAGE") {
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500);
+                    return;
+                }
+
+                // Normal bildirim (teklif vb.) geldiyse
                 var toast = document.getElementById("notificationToast");
                 toast.innerHTML = event.data;
                 toast.style.display = "block";

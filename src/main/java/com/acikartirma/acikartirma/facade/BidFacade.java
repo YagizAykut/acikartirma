@@ -1,47 +1,36 @@
 package com.acikartirma.acikartirma.facade;
 
 import com.acikartirma.acikartirma.entity.Bid;
+import com.acikartirma.acikartirma.facadelocal.BidFacadeLocal;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
-import com.acikartirma.acikartirma.facadelocal.BidFacadeLocal;
 
 @Stateless
-public class BidFacade implements BidFacadeLocal {
+public class BidFacade extends AbstractFacade<Bid> implements BidFacadeLocal {
 
-
-    @PersistenceContext(unitName = "default")
+    @PersistenceContext
     private EntityManager em;
 
-
-    public void create(Bid bid) {
-        em.persist(bid);
+    @Override
+    protected EntityManager getEntityManager() {
+        return em;
     }
 
-
-    public void update(Bid bid) {
-        em.merge(bid);
+    public BidFacade() {
+        super(Bid.class);
     }
 
-
-    public void remove(Bid bid) {
-        em.remove(em.merge(bid));
-    }
-
-
-    public List<Bid> findAll() {
-        return em.createQuery("SELECT b FROM Bid b ORDER BY b.bidTime DESC", Bid.class).getResultList();
-    }
-
-
+    // Bid'e özel metotlar burada kalmaya devam ediyor
+    @Override
     public List<Bid> findBidsByProduct(Long productId) {
-        return em.createQuery("SELECT b FROM Bid b WHERE b.product.id = :productId ORDER BY b.bidTime DESC", Bid.class)
+        return em.createQuery("SELECT b FROM Bid b WHERE b.product.id = :productId ORDER BY b.amount DESC", Bid.class)
                 .setParameter("productId", productId)
                 .getResultList();
     }
 
-
+    @Override
     public List<Bid> findBidsByUser(Long userId) {
         return em.createQuery("SELECT b FROM Bid b WHERE b.bidder.id = :userId ORDER BY b.bidTime DESC", Bid.class)
                 .setParameter("userId", userId)

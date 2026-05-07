@@ -5,7 +5,8 @@ import com.acikartirma.acikartirma.entity.Product;
 import com.acikartirma.acikartirma.entity.Transaction;
 import com.acikartirma.acikartirma.enums.TransactionType;
 import com.acikartirma.acikartirma.entity.User;
-import com.acikartirma.acikartirma.websocket.AuctionWebSocket;
+import com.acikartirma.acikartirma.facade.ProductFacadeProxy;
+import com.acikartirma.acikartirma.service.AuctionWebSocket;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.EJB;
 import jakarta.faces.application.FacesMessage;
@@ -27,7 +28,7 @@ import com.acikartirma.acikartirma.facadelocal.TransactionFacadeLocal;
 public class ProductBean implements Serializable {
 
     @EJB
-    private ProductFacadeLocal productFacade;
+    private ProductFacadeLocal productFacade; // Asıl EJB servisimiz
 
     @EJB
     private BidFacadeLocal bidFacade;
@@ -41,6 +42,9 @@ public class ProductBean implements Serializable {
     @Inject
     private UserBean userBean;
 
+    // Proxy nesnemiz (Tasarım Kalıbı Uygulaması)
+    private ProductFacadeLocal productProxy;
+
     private String name;
     private String description;
     private BigDecimal startingPrice;
@@ -51,7 +55,18 @@ public class ProductBean implements Serializable {
 
     @PostConstruct
     public void init() {
-        productList = productFacade.findAll();
+        // Proxy'yi asıl servis ile sarmalayarak başlatıyoruz
+        productProxy = new ProductFacadeProxy(productFacade);
+        refreshProductList();
+    }
+
+    private void refreshProductList() {
+        // Doğrudan facade yerine proxy üzerinden verileri çekiyoruz
+        productList = productProxy.findAll();
+        if (productList != null) {
+            // Yeni ürünleri en üstte göstermek için ID'ye göre büyükten küçüğe sıralama
+            productList.sort((p1, p2) -> p2.getId().compareTo(p1.getId()));
+        }
     }
 
     public List<Product> getAllProducts() {
@@ -71,20 +86,19 @@ public class ProductBean implements Serializable {
         p.setImagePath(imagePath);
         p.setSeller(userBean.getCurrentUser());
 
-        productFacade.create(p);
+        // Proxy üzerinden oluşturma işlemi (Loglama tetiklenir)
+        productProxy.create(p);
+
         return "index?faces-redirect=true";
     }
 
-    // YENİ EKLENEN DELETE (SİLME) METODU
     public void deleteProduct(Product product) {
-        // 1. Güvenlik: Kullanıcı sadece kendi ürününü mü siliyor?
         if (!product.getSeller().getUsername().equals(userBean.getCurrentUser().getUsername())) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata: Sadece kendi eklediğiniz ürünleri silebilirsiniz!", null));
             return;
         }
 
-        // 2. İş Kuralı: Ürüne teklif verilmiş mi?
         List<Bid> bids = bidFacade.findBidsByProduct(product.getId());
         if (bids != null && !bids.isEmpty()) {
             FacesContext.getCurrentInstance().addMessage(null,
@@ -92,15 +106,17 @@ public class ProductBean implements Serializable {
             return;
         }
 
-        // 3. Silme İşlemi ve Tabloyu Güncelleme
         try {
-            productFacade.remove(product);
-            productList = productFacade.findAll(); // Tabloyu anında güncellemek için listeyi yeniliyoruz
+            // Proxy üzerinden silme işlemi (Loglama tetiklenir)
+            productProxy.remove(product);
+            refreshProductList();
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_INFO, "Başarılı: İhale iptal edildi ve ürün silindi.", null));
         } catch (Exception e) {
+            String errorDetail = e.getMessage() != null ? e.getMessage() : e.toString();
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata: Ürün silinirken sistemsel bir sorun oluştu.", null));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata: Ürün silinemedi! Detay: " + errorDetail, null));
+            e.printStackTrace();
         }
     }
 
@@ -116,10 +132,9 @@ public class ProductBean implements Serializable {
 
         try {
             if (newBid.compareTo(product.getCurrentPrice()) > 0) {
-
                 User currentUser = userFacade.findByUsername(userBean.getCurrentUser().getUsername());
-
                 List<Bid> pastBids = bidFacade.findBidsByProduct(product.getId());
+
                 User previousBidder = null;
                 BigDecimal refundAmount = BigDecimal.ZERO;
                 boolean isOwnBid = false;
@@ -175,7 +190,9 @@ public class ProductBean implements Serializable {
                 transactionFacade.create(deductTx);
 
                 product.setCurrentPrice(newBid);
-                productFacade.update(product);
+
+                // Proxy üzerinden güncelleme işlemi
+                productProxy.update(product);
 
                 Bid bidLog = new Bid();
                 bidLog.setAmount(newBid);
@@ -190,6 +207,7 @@ public class ProductBean implements Serializable {
         }
     }
 
+    // GETTER VE SETTERLAR
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getDescription() { return description; }
