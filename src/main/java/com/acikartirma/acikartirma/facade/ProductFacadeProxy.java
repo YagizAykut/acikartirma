@@ -18,7 +18,7 @@ public class ProductFacadeProxy implements ProductFacadeLocal {
     @Override
     public void create(Product entity) {
         logger.info("PROXY: Yeni bir ürün ekleniyor: " + entity.getName());
-        // Burada ek güvenlik kontrolleri yapılabilir
+
         realService.create(entity);
     }
 

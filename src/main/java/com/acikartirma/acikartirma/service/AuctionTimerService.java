@@ -33,7 +33,7 @@ public class AuctionTimerService {
     @EJB
     private TransactionFacadeLocal transactionFacade;
 
-    // Her 10 saniyede bir arka planda çalışır
+
     @Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
     public void checkExpiredAuctions() {
 
@@ -45,7 +45,7 @@ public class AuctionTimerService {
                 List<Bid> bids = bidFacade.findBidsByProduct(p.getId());
 
                 if (bids != null && !bids.isEmpty()) {
-                    // Teklif varsa ürünü SATILDI yap ve parayı satıcıya aktar
+
                     Bid winningBid = bids.get(0);
                     p.setStatus(ProductStatus.SOLD);
                     p.setWinner(winningBid.getBidder());
@@ -61,7 +61,7 @@ public class AuctionTimerService {
                     transactionFacade.create(tx);
 
                 } else {
-                    // Teklif yoksa ürünü SÜRESİ DOLDU yap
+
                     p.setStatus(ProductStatus.EXPIRED);
                 }
 
@@ -70,7 +70,7 @@ public class AuctionTimerService {
             }
         }
 
-        // EĞER BİR ÜRÜNÜN SÜRESİ BİTTİYSE TÜM EKRANLARA "YENİLE" SİNYALİ GÖNDER
+
         if (hasChanges) {
             AuctionWebSocket.broadcast("RELOAD_PAGE");
         }

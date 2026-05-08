@@ -23,10 +23,10 @@ public class ProductFacade extends AbstractFacade<Product> implements ProductFac
         super(Product.class);
     }
 
-    // YANLIŞLIKLA SİLİNEN ÖZEL METOT BURAYA GERİ EKLENDİ
+
     @Override
     public List<Product> findExpiredActiveProducts(LocalDateTime currentTime) {
-        // Durumu ACTIVE (İhalede) olan ve bitiş süresi şu anki zamandan daha eski olan ürünleri getirir
+
         return em.createQuery("SELECT p FROM Product p WHERE p.status = com.acikartirma.acikartirma.enums.ProductStatus.ACTIVE AND p.endTime <= :currentTime", Product.class)
                 .setParameter("currentTime", currentTime)
                 .getResultList();

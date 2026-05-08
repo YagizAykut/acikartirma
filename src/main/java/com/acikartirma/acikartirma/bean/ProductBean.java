@@ -28,7 +28,7 @@ import com.acikartirma.acikartirma.facadelocal.TransactionFacadeLocal;
 public class ProductBean implements Serializable {
 
     @EJB
-    private ProductFacadeLocal productFacade; // Asıl EJB servisimiz
+    private ProductFacadeLocal productFacade;
 
     @EJB
     private BidFacadeLocal bidFacade;
@@ -42,7 +42,7 @@ public class ProductBean implements Serializable {
     @Inject
     private UserBean userBean;
 
-    // Proxy nesnemiz (Tasarım Kalıbı Uygulaması)
+
     private ProductFacadeLocal productProxy;
 
     private String name;
@@ -55,16 +55,16 @@ public class ProductBean implements Serializable {
 
     @PostConstruct
     public void init() {
-        // Proxy'yi asıl servis ile sarmalayarak başlatıyoruz
+
         productProxy = new ProductFacadeProxy(productFacade);
         refreshProductList();
     }
 
     private void refreshProductList() {
-        // Doğrudan facade yerine proxy üzerinden verileri çekiyoruz
+
         productList = productProxy.findAll();
         if (productList != null) {
-            // Yeni ürünleri en üstte göstermek için ID'ye göre büyükten küçüğe sıralama
+
             productList.sort((p1, p2) -> p2.getId().compareTo(p1.getId()));
         }
     }
@@ -86,7 +86,7 @@ public class ProductBean implements Serializable {
         p.setImagePath(imagePath);
         p.setSeller(userBean.getCurrentUser());
 
-        // Proxy üzerinden oluşturma işlemi (Loglama tetiklenir)
+
         productProxy.create(p);
 
         return "index?faces-redirect=true";
@@ -107,7 +107,7 @@ public class ProductBean implements Serializable {
         }
 
         try {
-            // Proxy üzerinden silme işlemi (Loglama tetiklenir)
+
             productProxy.remove(product);
             refreshProductList();
             FacesContext.getCurrentInstance().addMessage(null,
@@ -191,7 +191,7 @@ public class ProductBean implements Serializable {
 
                 product.setCurrentPrice(newBid);
 
-                // Proxy üzerinden güncelleme işlemi
+
                 productProxy.update(product);
 
                 Bid bidLog = new Bid();
@@ -207,7 +207,7 @@ public class ProductBean implements Serializable {
         }
     }
 
-    // GETTER VE SETTERLAR
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getDescription() { return description; }

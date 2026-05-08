@@ -22,7 +22,7 @@ public class BidFacade extends AbstractFacade<Bid> implements BidFacadeLocal {
         super(Bid.class);
     }
 
-    // Bid'e özel metotlar burada kalmaya devam ediyor
+
     @Override
     public List<Bid> findBidsByProduct(Long productId) {
         return em.createQuery("SELECT b FROM Bid b WHERE b.product.id = :productId ORDER BY b.amount DESC", Bid.class)

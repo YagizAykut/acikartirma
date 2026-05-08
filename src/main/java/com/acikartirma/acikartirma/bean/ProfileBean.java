@@ -33,7 +33,7 @@ public class ProfileBean implements Serializable {
     public void init() {
         User currentUser = userBean.getCurrentUser();
         if (currentUser != null) {
-            // Facade içindeki "kullanılmayan" metotları burada hayata geçiriyoruz
+
             transactions = transactionFacade.findTransactionsByUser(currentUser.getId());
             bids = bidFacade.findBidsByUser(currentUser.getId());
         }

@@ -13,21 +13,18 @@ public class UserFacade extends AbstractFacade<User> implements UserFacadeLocal 
     @PersistenceContext
     private EntityManager em;
 
-    // AbstractFacade'in bizden istediği zorunlu metot
+
     @Override
     protected EntityManager getEntityManager() {
         return em;
     }
 
-    // AbstractFacade'e hangi Entity ile çalışacağını söylüyoruz
+
     public UserFacade() {
         super(User.class);
     }
 
-    // DİKKAT: create, edit, remove, findAll metotlarının hepsini sildik!
-    // Çünkü onlar artık AbstractFacade'den otomatik geliyor.
 
-    // Sadece User'a ÖZEL olan metotları burada tutuyoruz:
     @Override
     public User findByUsername(String username) {
         try {

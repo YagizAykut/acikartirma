@@ -22,7 +22,7 @@ public class TransactionFacade extends AbstractFacade<Transaction> implements Tr
         super(Transaction.class);
     }
 
-    // Transaction'a özel metotlar burada kalmaya devam ediyor
+
     @Override
     public List<Transaction> findTransactionsByUser(Long userId) {
         return em.createQuery("SELECT t FROM Transaction t WHERE t.user.id = :userId ORDER BY t.transactionDate DESC", Transaction.class)

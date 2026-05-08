@@ -417,7 +417,7 @@
             var websocket = new WebSocket(wsUri);
 
             websocket.onmessage = function(event) {
-                // Veritabanı (Commit) işleminin tamamlanması için 1.5 saniye (1500ms) bekle!
+
                 if (event.data === "RELOAD_PAGE") {
                     setTimeout(function() {
                         window.location.reload();
@@ -425,7 +425,7 @@
                     return;
                 }
 
-                // Normal bildirim (teklif vb.) geldiyse
+
                 var toast = document.getElementById("notificationToast");
                 toast.innerHTML = event.data;
                 toast.style.display = "block";

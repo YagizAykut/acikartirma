@@ -35,7 +35,7 @@ public class UserBean implements Serializable {
     private BigDecimal loadAmount;
 
     public String register() {
-        // 1. ADIM: BOŞLUK VE NULL KONTROLÜ
+
         if (firstName == null || firstName.trim().isEmpty() ||
                 lastName == null || lastName.trim().isEmpty() ||
                 username == null || username.trim().isEmpty() ||
@@ -48,21 +48,21 @@ public class UserBean implements Serializable {
             return null;
         }
 
-        // 2. ADIM: E-POSTA FORMAT KONTROLÜ (@ işareti var mı?)
+
         if (!email.trim().contains("@")) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Kayıt Başarısız: Lütfen geçerli bir e-posta adresi girin (örn: ornek@mail.com)!", null));
             return null;
         }
 
-        // 3. ADIM: TELEFON FORMAT KONTROLÜ (Tam 10 rakam mı?)
+
         if (!phoneNumber.trim().matches("\\d{10}")) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Kayıt Başarısız: Telefon numarası 10 haneli rakamlardan oluşmalıdır (örn: 5555555555)!", null));
             return null;
         }
 
-        // 4. ADIM: KAYIT İŞLEMİ VE BENZERSİZLİK (UNIQUE) KONTROLÜ
+
         try {
             User newUser = new User();
             newUser.setUsername(username.trim());
@@ -76,7 +76,7 @@ public class UserBean implements Serializable {
             return "login?faces-redirect=true";
 
         } catch (Exception e) {
-            // Veritabanında (Entity'de unique=true olan) aynı veriden zaten varsa
+
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Kayıt Başarısız: Bu kullanıcı adı, e-posta veya telefon numarası zaten sistemde kayıtlı!", null));
             return null;

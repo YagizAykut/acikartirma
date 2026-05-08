@@ -37,8 +37,7 @@ public abstract class AbstractFacade<T> {
 
         jakarta.persistence.Query query = getEntityManager().createQuery(cq);
 
-        // KRİTİK NOKTA: GlassFish Önbelleğini (Cache) bypass ediyoruz.
-        // Her zaman veritabanındaki en taze ve güncel veriyi getirmeye zorluyoruz!
+
         query.setHint("jakarta.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS);
         query.setHint("jakarta.persistence.cache.storeMode", CacheStoreMode.REFRESH);
 

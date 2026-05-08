@@ -18,8 +18,7 @@
     </properties>
 
     <dependencies>
-        <!-- 1. Jakarta EE 10 Full API (JSF, EJB, CDI, JPA, WebSocket hepsi tek pakette) -->
-        <!-- Scope "provided" çünkü GlassFish sunucusu çalışırken bu kütüphaneleri zaten kendisi sağlayacak -->
+
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
@@ -33,21 +32,21 @@
             <version>4.0.1</version>
             <scope>provided</scope>
         </dependency>
-        <!-- 2. PostgreSQL Veritabanı Sürücüsü -->
+
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.7.2</version>
         </dependency>
 
-        <!-- 3. EclipseLink (Hocanın istediği ORM aracı - Jakarta EE 10 uyumlu 4.x sürümü) -->
+
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>eclipselink</artifactId>
             <version>4.0.2</version>
         </dependency>
 
-        <!-- JUnit Test Kütüphaneleri -->
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -64,7 +63,7 @@
 
     <build>
         <plugins>
-            <!-- WAR dosyası oluştururken web.xml zorunluluğunu kaldıran eklenti -->
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
