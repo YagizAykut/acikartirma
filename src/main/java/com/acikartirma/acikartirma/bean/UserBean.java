@@ -1,8 +1,10 @@
 package com.acikartirma.acikartirma.bean;
 
 import com.acikartirma.acikartirma.entity.Transaction;
-import com.acikartirma.acikartirma.enums.TransactionType;
 import com.acikartirma.acikartirma.entity.User;
+import com.acikartirma.acikartirma.enums.TransactionType;
+import com.acikartirma.acikartirma.facadelocal.TransactionFacadeLocal;
+import com.acikartirma.acikartirma.facadelocal.UserFacadeLocal;
 import jakarta.ejb.EJB;
 import jakarta.enterprise.context.SessionScoped;
 import jakarta.faces.application.FacesMessage;
@@ -10,8 +12,6 @@ import jakarta.faces.context.FacesContext;
 import jakarta.inject.Named;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import com.acikartirma.acikartirma.facadelocal.UserFacadeLocal;
-import com.acikartirma.acikartirma.facadelocal.TransactionFacadeLocal;
 
 @Named
 @SessionScoped
@@ -24,134 +24,79 @@ public class UserBean implements Serializable {
     private TransactionFacadeLocal transactionFacade;
 
     private User currentUser;
+    private boolean loggedIn;
 
-    private String username;
-    private String password;
-    private String email;
-    private String firstName;
-    private String lastName;
-    private String phoneNumber;
-
+    private String loginUsername;
+    private String loginPassword;
+    private User newUser;
     private BigDecimal loadAmount;
 
-    public String register() {
-
-        if (firstName == null || firstName.trim().isEmpty() ||
-                lastName == null || lastName.trim().isEmpty() ||
-                username == null || username.trim().isEmpty() ||
-                email == null || email.trim().isEmpty() ||
-                phoneNumber == null || phoneNumber.trim().isEmpty() ||
-                password == null || password.trim().isEmpty()) {
-
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Kayıt Başarısız: Lütfen tüm alanları eksiksiz doldurun!", null));
-            return null;
-        }
-
-
-        if (!email.trim().contains("@")) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Kayıt Başarısız: Lütfen geçerli bir e-posta adresi girin (örn: ornek@mail.com)!", null));
-            return null;
-        }
-
-
-        if (!phoneNumber.trim().matches("\\d{10}")) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Kayıt Başarısız: Telefon numarası 10 haneli rakamlardan oluşmalıdır (örn: 5555555555)!", null));
-            return null;
-        }
-
-
-        try {
-            User newUser = new User();
-            newUser.setUsername(username.trim());
-            newUser.setPassword(password.trim());
-            newUser.setEmail(email.trim());
-            newUser.setFirstName(firstName.trim());
-            newUser.setLastName(lastName.trim());
-            newUser.setPhoneNumber(phoneNumber.trim());
-
-            userFacade.create(newUser);
-            return "login?faces-redirect=true";
-
-        } catch (Exception e) {
-
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Kayıt Başarısız: Bu kullanıcı adı, e-posta veya telefon numarası zaten sistemde kayıtlı!", null));
-            return null;
-        }
+    public UserBean() {
+        newUser = new User();
     }
 
     public String login() {
-        User user = userFacade.findByUsername(username);
-        if (user != null && user.getPassword().equals(password)) {
+        User user = userFacade.findByUsername(loginUsername);
+        if (user != null && user.getPassword().equals(loginPassword)) {
             currentUser = user;
-
-            FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("valid_user", currentUser);
-
+            loggedIn = true;
             return "index?faces-redirect=true";
         }
-
-        FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Giriş Başarısız: Kullanıcı adı veya şifre hatalı!", null));
-        return "login?error=true";
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata", "Kullanıcı adı veya şifre hatalı."));
+        return null;
     }
 
     public String logout() {
         currentUser = null;
-
+        loggedIn = false;
         FacesContext.getCurrentInstance().getExternalContext().invalidateSession();
-
-        return "login?faces-redirect=true";
-    }
-
-    public String loadBalance() {
-        if (loadAmount != null && loadAmount.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal currentBalance = currentUser.getBalance();
-            currentUser.setBalance(currentBalance.add(loadAmount));
-
-            userFacade.update(currentUser);
-
-            Transaction tx = new Transaction();
-            tx.setAmount(loadAmount);
-            tx.setType(TransactionType.DEPOSIT);
-            tx.setUser(currentUser);
-            transactionFacade.create(tx);
-
-            loadAmount = null;
-        }
         return "index?faces-redirect=true";
     }
 
-    public boolean isLoggedIn() {
-        return currentUser != null;
-    }
-
-    public User getCurrentUser() {
-        if (currentUser != null) {
-            currentUser = userFacade.findByUsername(currentUser.getUsername());
+    public String register() {
+        try {
+            userFacade.create(newUser);
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Başarılı", "Kayıt tamamlandı. Lütfen giriş yapınız."));
+            newUser = new User();
+            return "login?faces-redirect=true";
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata", "Kayıt başarısız. Kullanıcı adı veya email kullanılıyor olabilir."));
+            return null;
         }
-        return currentUser;
     }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public void loadBalance() {
+        if (loadAmount != null && loadAmount.compareTo(BigDecimal.ZERO) > 0) {
+            currentUser.setBalance(currentUser.getBalance().add(loadAmount));
+            userFacade.update(currentUser);
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+            Transaction t = new Transaction();
+            t.setUser(currentUser);
+            t.setAmount(loadAmount);
+            t.setType(TransactionType.DEPOSIT);
+            transactionFacade.create(t);
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+            currentUser = userFacade.find(currentUser.getId());
+            loadAmount = null;
 
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Başarılı", "Bakiye başarıyla yüklendi."));
+        }
+    }
 
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public User getCurrentUser() { return currentUser; }
+    public void setCurrentUser(User currentUser) { this.currentUser = currentUser; }
 
-    public String getPhoneNumber() { return phoneNumber; }
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public boolean isLoggedIn() { return loggedIn; }
+    public void setLoggedIn(boolean loggedIn) { this.loggedIn = loggedIn; }
+
+    public String getLoginUsername() { return loginUsername; }
+    public void setLoginUsername(String loginUsername) { this.loginUsername = loginUsername; }
+
+    public String getLoginPassword() { return loginPassword; }
+    public void setLoginPassword(String loginPassword) { this.loginPassword = loginPassword; }
+
+    public User getNewUser() { return newUser; }
+    public void setNewUser(User newUser) { this.newUser = newUser; }
 
     public BigDecimal getLoadAmount() { return loadAmount; }
     public void setLoadAmount(BigDecimal loadAmount) { this.loadAmount = loadAmount; }

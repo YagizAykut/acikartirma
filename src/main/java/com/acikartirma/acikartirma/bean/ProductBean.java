@@ -1,12 +1,17 @@
 package com.acikartirma.acikartirma.bean;
 
-import com.acikartirma.acikartirma.entity.Bid;
+import com.acikartirma.acikartirma.entity.Category;
+import com.acikartirma.acikartirma.entity.Notification;
 import com.acikartirma.acikartirma.entity.Product;
 import com.acikartirma.acikartirma.entity.Transaction;
-import com.acikartirma.acikartirma.enums.TransactionType;
 import com.acikartirma.acikartirma.entity.User;
+import com.acikartirma.acikartirma.enums.TransactionType;
 import com.acikartirma.acikartirma.facade.ProductFacadeProxy;
-import com.acikartirma.acikartirma.service.AuctionWebSocket;
+import com.acikartirma.acikartirma.facadelocal.CategoryFacadeLocal;
+import com.acikartirma.acikartirma.facadelocal.NotificationFacadeLocal;
+import com.acikartirma.acikartirma.facadelocal.ProductFacadeLocal;
+import com.acikartirma.acikartirma.facadelocal.TransactionFacadeLocal;
+import com.acikartirma.acikartirma.facadelocal.UserFacadeLocal;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.EJB;
 import jakarta.faces.application.FacesMessage;
@@ -17,11 +22,9 @@ import jakarta.inject.Named;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
-import com.acikartirma.acikartirma.facadelocal.ProductFacadeLocal;
-import com.acikartirma.acikartirma.facadelocal.BidFacadeLocal;
-import com.acikartirma.acikartirma.facadelocal.UserFacadeLocal;
-import com.acikartirma.acikartirma.facadelocal.TransactionFacadeLocal;
+import java.util.stream.Collectors;
 
 @Named
 @ViewScoped
@@ -31,7 +34,7 @@ public class ProductBean implements Serializable {
     private ProductFacadeLocal productFacade;
 
     @EJB
-    private BidFacadeLocal bidFacade;
+    private CategoryFacadeLocal categoryFacade;
 
     @EJB
     private UserFacadeLocal userFacade;
@@ -39,183 +42,167 @@ public class ProductBean implements Serializable {
     @EJB
     private TransactionFacadeLocal transactionFacade;
 
+    @EJB
+    private NotificationFacadeLocal notificationFacade;
+
     @Inject
     private UserBean userBean;
 
-
     private ProductFacadeLocal productProxy;
+
+    private List<Product> allProducts;
+    private List<Category> categories;
+    private Long selectedCategoryId;
+    private Long filterCategoryId;
 
     private String name;
     private String description;
     private BigDecimal startingPrice;
+    private Integer durationInMinutes;
     private String imagePath;
-    private int durationInMinutes;
 
-    private List<Product> productList;
+    public ProductBean() {
+    }
 
     @PostConstruct
     public void init() {
-
         productProxy = new ProductFacadeProxy(productFacade);
         refreshProductList();
+        categories = categoryFacade.findAll();
     }
 
-    private void refreshProductList() {
+    public void refreshProductList() {
+        allProducts = productProxy.findAll().stream()
+                .sorted(Comparator.comparing(Product::getId).reversed())
+                .collect(Collectors.toList());
+    }
 
-        productList = productProxy.findAll();
-        if (productList != null) {
-
-            productList.sort((p1, p2) -> p2.getId().compareTo(p1.getId()));
+    public void filterProducts() {
+        List<Product> baseList = productProxy.findAll();
+        if (filterCategoryId == null || filterCategoryId == 0L) {
+            allProducts = baseList.stream()
+                    .sorted(Comparator.comparing(Product::getId).reversed())
+                    .collect(Collectors.toList());
+        } else {
+            allProducts = baseList.stream()
+                    .filter(p -> p.getCategory() != null && p.getCategory().getId().equals(filterCategoryId))
+                    .sorted(Comparator.comparing(Product::getId).reversed())
+                    .collect(Collectors.toList());
         }
     }
 
-    public List<Product> getAllProducts() {
-        return productList;
-    }
+    public void saveProduct() {
+        Product newProduct = new Product();
+        newProduct.setName(name);
+        newProduct.setDescription(description);
+        newProduct.setStartingPrice(startingPrice);
+        newProduct.setCurrentPrice(startingPrice);
+        newProduct.setStartTime(LocalDateTime.now());
+        newProduct.setEndTime(LocalDateTime.now().plusMinutes(durationInMinutes));
+        newProduct.setImagePath(imagePath);
 
-    public String saveProduct() {
-        Product p = new Product();
-        p.setName(name);
-        p.setDescription(description);
-        p.setStartingPrice(startingPrice);
-        p.setCurrentPrice(startingPrice);
-
-        LocalDateTime now = LocalDateTime.now();
-        p.setStartTime(now);
-        p.setEndTime(now.plusMinutes(durationInMinutes));
-        p.setImagePath(imagePath);
-        p.setSeller(userBean.getCurrentUser());
-
-
-        productProxy.create(p);
-
-        return "index?faces-redirect=true";
-    }
-
-    public void deleteProduct(Product product) {
-        if (!product.getSeller().getUsername().equals(userBean.getCurrentUser().getUsername())) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata: Sadece kendi eklediğiniz ürünleri silebilirsiniz!", null));
-            return;
+        if (selectedCategoryId != null) {
+            newProduct.setCategory(categoryFacade.find(selectedCategoryId));
         }
 
-        List<Bid> bids = bidFacade.findBidsByProduct(product.getId());
-        if (bids != null && !bids.isEmpty()) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "İşlem Reddedildi: Bu ürüne teklif verildiği için ihale iptal edilemez!", null));
-            return;
-        }
+        newProduct.setSeller(userBean.getCurrentUser());
+        productProxy.create(newProduct);
 
-        try {
+        name = null;
+        description = null;
+        startingPrice = null;
+        durationInMinutes = null;
+        imagePath = null;
+        selectedCategoryId = null;
 
-            productProxy.remove(product);
-            refreshProductList();
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Başarılı: İhale iptal edildi ve ürün silindi.", null));
-        } catch (Exception e) {
-            String errorDetail = e.getMessage() != null ? e.getMessage() : e.toString();
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata: Ürün silinemedi! Detay: " + errorDetail, null));
-            e.printStackTrace();
-        }
+        refreshProductList();
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Başarılı", "Ürün ihaleye çıkarıldı."));
     }
 
     public void placeBid(Product product) {
-        BigDecimal newBid = product.getNewBidAmount();
-        if (newBid == null) return;
+        User currentUser = userBean.getCurrentUser();
+        BigDecimal bidAmount = product.getNewBidAmount();
 
-        if (LocalDateTime.now().isAfter(product.getEndTime())) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata: Süre Doldu! Bu açık artırma sona ermiştir.", null));
+        if (bidAmount == null || bidAmount.compareTo(product.getCurrentPrice()) <= 0) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata", "Teklif mevcut fiyattan yüksek olmalıdır."));
             return;
         }
 
-        try {
-            if (newBid.compareTo(product.getCurrentPrice()) > 0) {
-                User currentUser = userFacade.findByUsername(userBean.getCurrentUser().getUsername());
-                List<Bid> pastBids = bidFacade.findBidsByProduct(product.getId());
-
-                User previousBidder = null;
-                BigDecimal refundAmount = BigDecimal.ZERO;
-                boolean isOwnBid = false;
-
-                if (pastBids != null && !pastBids.isEmpty()) {
-                    Bid lastBid = pastBids.get(0);
-                    previousBidder = lastBid.getBidder();
-                    refundAmount = lastBid.getAmount();
-
-                    if (previousBidder.getId().equals(currentUser.getId())) {
-                        isOwnBid = true;
-                    }
-                }
-
-                BigDecimal availablePower = currentUser.getBalance();
-                if (isOwnBid) {
-                    availablePower = availablePower.add(refundAmount);
-                }
-
-                if (availablePower.compareTo(newBid) < 0) {
-                    FacesContext.getCurrentInstance().addMessage(null,
-                            new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata: Yetersiz Bakiye!", null));
-                    return;
-                }
-
-                if (pastBids != null && !pastBids.isEmpty()) {
-                    if (isOwnBid) {
-                        currentUser.setBalance(currentUser.getBalance().add(refundAmount));
-                        Transaction refundTx = new Transaction();
-                        refundTx.setAmount(refundAmount);
-                        refundTx.setType(TransactionType.BID_REFUND);
-                        refundTx.setUser(currentUser);
-                        transactionFacade.create(refundTx);
-                    } else {
-                        previousBidder.setBalance(previousBidder.getBalance().add(refundAmount));
-                        userFacade.update(previousBidder);
-                        Transaction refundTx = new Transaction();
-                        refundTx.setAmount(refundAmount);
-                        refundTx.setType(TransactionType.BID_REFUND);
-                        refundTx.setUser(previousBidder);
-                        transactionFacade.create(refundTx);
-                    }
-                }
-
-                currentUser.setBalance(currentUser.getBalance().subtract(newBid));
-                userFacade.update(currentUser);
-                userBean.getCurrentUser().setBalance(currentUser.getBalance());
-
-                Transaction deductTx = new Transaction();
-                deductTx.setAmount(newBid);
-                deductTx.setType(TransactionType.BID_DEDUCTION);
-                deductTx.setUser(currentUser);
-                transactionFacade.create(deductTx);
-
-                product.setCurrentPrice(newBid);
-
-
-                productProxy.update(product);
-
-                Bid bidLog = new Bid();
-                bidLog.setAmount(newBid);
-                bidLog.setBidder(currentUser);
-                bidLog.setProduct(product);
-                bidFacade.create(bidLog);
-
-                AuctionWebSocket.broadcast("💰 Yeni Teklif! " + product.getName() + " için " + newBid + " TL teklif verildi!");
-            }
-        } catch (Exception e) {
-            System.out.println("Teklif verilirken bir hata oluştu: " + e.getMessage());
+        if (currentUser.getBalance().compareTo(bidAmount) < 0) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata", "Yetersiz bakiye."));
+            return;
         }
+
+        if (product.getWinner() != null) {
+            User oldWinner = product.getWinner();
+            oldWinner.setBalance(oldWinner.getBalance().add(product.getCurrentPrice()));
+            userFacade.update(oldWinner);
+
+            Transaction refund = new Transaction();
+            refund.setUser(oldWinner);
+            refund.setAmount(product.getCurrentPrice());
+            refund.setType(TransactionType.BID_REFUND);
+            transactionFacade.create(refund);
+
+            Notification refundNotif = new Notification();
+            refundNotif.setUser(oldWinner);
+            refundNotif.setMessage("'" + product.getName() + "' ürünündeki teklifiniz geçildi. Bakiyeniz iade edildi.");
+            notificationFacade.create(refundNotif);
+        }
+
+        currentUser.setBalance(currentUser.getBalance().subtract(bidAmount));
+        userFacade.update(currentUser);
+        userBean.setCurrentUser(userFacade.find(currentUser.getId()));
+
+        Transaction deduction = new Transaction();
+        deduction.setUser(currentUser);
+        deduction.setAmount(bidAmount);
+        deduction.setType(TransactionType.BID_DEDUCTION);
+        transactionFacade.create(deduction);
+
+        Notification sellerNotif = new Notification();
+        sellerNotif.setUser(product.getSeller());
+        sellerNotif.setMessage("Ürününüz '" + product.getName() + "' için " + bidAmount + " TL değerinde yeni bir teklif var!");
+        notificationFacade.create(sellerNotif);
+
+        product.setCurrentPrice(bidAmount);
+        product.setWinner(currentUser);
+        productProxy.update(product);
+
+        product.setNewBidAmount(null);
+        filterProducts();
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Başarılı", "Teklifiniz alındı."));
     }
 
+    public void deleteProduct(Product product) {
+        productProxy.remove(product);
+        filterProducts();
+    }
+
+    public List<Product> getAllProducts() { return allProducts; }
+    public void setAllProducts(List<Product> allProducts) { this.allProducts = allProducts; }
+
+    public List<Category> getCategories() { return categories; }
+    public void setCategories(List<Category> categories) { this.categories = categories; }
+
+    public Long getSelectedCategoryId() { return selectedCategoryId; }
+    public void setSelectedCategoryId(Long selectedCategoryId) { this.selectedCategoryId = selectedCategoryId; }
+
+    public Long getFilterCategoryId() { return filterCategoryId; }
+    public void setFilterCategoryId(Long filterCategoryId) { this.filterCategoryId = filterCategoryId; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
     public BigDecimal getStartingPrice() { return startingPrice; }
     public void setStartingPrice(BigDecimal startingPrice) { this.startingPrice = startingPrice; }
+
+    public Integer getDurationInMinutes() { return durationInMinutes; }
+    public void setDurationInMinutes(Integer durationInMinutes) { this.durationInMinutes = durationInMinutes; }
+
     public String getImagePath() { return imagePath; }
     public void setImagePath(String imagePath) { this.imagePath = imagePath; }
-    public int getDurationInMinutes() { return durationInMinutes; }
-    public void setDurationInMinutes(int durationInMinutes) { this.durationInMinutes = durationInMinutes; }
 }

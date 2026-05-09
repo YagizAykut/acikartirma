@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -19,31 +20,28 @@ public class Product implements Serializable {
 
     private String description;
 
-
     @Column(name = "starting_price", nullable = false)
     private BigDecimal startingPrice;
-
 
     @Column(name = "current_price")
     private BigDecimal currentPrice;
 
-
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
-
 
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
-
     @Column(name = "image_path")
     private String imagePath;
-
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProductStatus status = ProductStatus.ACTIVE;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
     @ManyToOne
     @JoinColumn(name = "winner_id")
@@ -53,6 +51,9 @@ public class Product implements Serializable {
     @JoinColumn(name = "seller_id")
     private User seller;
 
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ProductQuestion> productQuestions;
+
     @Version
     private Long version;
 
@@ -61,8 +62,6 @@ public class Product implements Serializable {
 
     public Product() {
     }
-
-
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -91,11 +90,17 @@ public class Product implements Serializable {
     public ProductStatus getStatus() { return status; }
     public void setStatus(ProductStatus status) { this.status = status; }
 
+    public Category getCategory() { return category; }
+    public void setCategory(Category category) { this.category = category; }
+
     public User getWinner() { return winner; }
     public void setWinner(User winner) { this.winner = winner; }
 
     public User getSeller() { return seller; }
     public void setSeller(User seller) { this.seller = seller; }
+
+    public List<ProductQuestion> getProductQuestions() { return productQuestions; }
+    public void setProductQuestions(List<ProductQuestion> productQuestions) { this.productQuestions = productQuestions; }
 
     public Long getVersion() { return version; }
 

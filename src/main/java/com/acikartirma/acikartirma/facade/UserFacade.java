@@ -13,17 +13,14 @@ public class UserFacade extends AbstractFacade<User> implements UserFacadeLocal 
     @PersistenceContext
     private EntityManager em;
 
-
     @Override
     protected EntityManager getEntityManager() {
         return em;
     }
 
-
     public UserFacade() {
         super(User.class);
     }
-
 
     @Override
     public User findByUsername(String username) {

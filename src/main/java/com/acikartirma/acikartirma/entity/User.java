@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -25,32 +26,31 @@ public class User implements Serializable {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-
     @Column(nullable = false, unique = true)
     private String email;
-
 
     @Column(name = "phone_number", nullable = false, unique = true)
     private String phoneNumber;
 
-
     @Column(nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
-
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Notification> notifications;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ProductQuestion> productQuestions;
+
     public User() {
     }
-
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
-
-
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -78,4 +78,10 @@ public class User implements Serializable {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public List<Notification> getNotifications() { return notifications; }
+    public void setNotifications(List<Notification> notifications) { this.notifications = notifications; }
+
+    public List<ProductQuestion> getProductQuestions() { return productQuestions; }
+    public void setProductQuestions(List<ProductQuestion> productQuestions) { this.productQuestions = productQuestions; }
 }

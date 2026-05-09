@@ -9,7 +9,10 @@ public interface BidFacadeLocal {
     void create(Bid bid);
     void update(Bid bid);
     void remove(Bid bid);
+    Bid find(Object id);
     List<Bid> findAll();
+
+
     List<Bid> findBidsByProduct(Long productId);
     List<Bid> findBidsByUser(Long userId);
 }

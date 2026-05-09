@@ -1,12 +1,11 @@
 package com.acikartirma.acikartirma.service;
 
-import com.acikartirma.acikartirma.entity.Bid;
+import com.acikartirma.acikartirma.entity.Notification;
 import com.acikartirma.acikartirma.entity.Product;
 import com.acikartirma.acikartirma.entity.Transaction;
-import com.acikartirma.acikartirma.entity.User;
 import com.acikartirma.acikartirma.enums.ProductStatus;
 import com.acikartirma.acikartirma.enums.TransactionType;
-import com.acikartirma.acikartirma.facadelocal.BidFacadeLocal;
+import com.acikartirma.acikartirma.facadelocal.NotificationFacadeLocal;
 import com.acikartirma.acikartirma.facadelocal.ProductFacadeLocal;
 import com.acikartirma.acikartirma.facadelocal.TransactionFacadeLocal;
 import com.acikartirma.acikartirma.facadelocal.UserFacadeLocal;
@@ -25,54 +24,52 @@ public class AuctionTimerService {
     private ProductFacadeLocal productFacade;
 
     @EJB
-    private BidFacadeLocal bidFacade;
-
-    @EJB
     private UserFacadeLocal userFacade;
 
     @EJB
     private TransactionFacadeLocal transactionFacade;
 
+    @EJB
+    private NotificationFacadeLocal notificationFacade;
 
     @Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
     public void checkExpiredAuctions() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Product> expiredProducts = productFacade.findExpiredActiveProducts(now);
 
-        List<Product> expiredProducts = productFacade.findExpiredActiveProducts(LocalDateTime.now());
-        boolean hasChanges = false;
+        for (Product product : expiredProducts) {
+            if (product.getWinner() != null) {
+                product.setStatus(ProductStatus.SOLD);
 
-        if (expiredProducts != null && !expiredProducts.isEmpty()) {
-            for (Product p : expiredProducts) {
-                List<Bid> bids = bidFacade.findBidsByProduct(p.getId());
+                product.getSeller().setBalance(product.getSeller().getBalance().add(product.getCurrentPrice()));
+                userFacade.update(product.getSeller());
 
-                if (bids != null && !bids.isEmpty()) {
+                Transaction t = new Transaction();
+                t.setUser(product.getSeller());
+                t.setAmount(product.getCurrentPrice());
+                t.setType(TransactionType.SALE_REVENUE);
+                transactionFacade.create(t);
 
-                    Bid winningBid = bids.get(0);
-                    p.setStatus(ProductStatus.SOLD);
-                    p.setWinner(winningBid.getBidder());
+                Notification sellerNotif = new Notification();
+                sellerNotif.setUser(product.getSeller());
+                sellerNotif.setMessage("Tebrikler! '" + product.getName() + "' adlı ürününüz " + product.getCurrentPrice() + " TL'ye satıldı.");
+                notificationFacade.create(sellerNotif);
 
-                    User seller = p.getSeller();
-                    seller.setBalance(seller.getBalance().add(winningBid.getAmount()));
-                    userFacade.update(seller);
+                Notification winnerNotif = new Notification();
+                winnerNotif.setUser(product.getWinner());
+                winnerNotif.setMessage("Kazandınız! '" + product.getName() + "' ihalesini " + product.getCurrentPrice() + " TL ile kazandınız.");
+                notificationFacade.create(winnerNotif);
 
-                    Transaction tx = new Transaction();
-                    tx.setAmount(winningBid.getAmount());
-                    tx.setType(TransactionType.DEPOSIT);
-                    tx.setUser(seller);
-                    transactionFacade.create(tx);
+            } else {
+                product.setStatus(ProductStatus.EXPIRED);
 
-                } else {
-
-                    p.setStatus(ProductStatus.EXPIRED);
-                }
-
-                productFacade.update(p);
-                hasChanges = true;
+                Notification expireNotif = new Notification();
+                expireNotif.setUser(product.getSeller());
+                expireNotif.setMessage("Süre Doldu: '" + product.getName() + "' adlı ürününüze alıcı çıkmadı.");
+                notificationFacade.create(expireNotif);
             }
-        }
 
-
-        if (hasChanges) {
-            AuctionWebSocket.broadcast("RELOAD_PAGE");
+            productFacade.update(product);
         }
     }
 }

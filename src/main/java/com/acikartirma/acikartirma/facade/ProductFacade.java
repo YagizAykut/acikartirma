@@ -23,12 +23,23 @@ public class ProductFacade extends AbstractFacade<Product> implements ProductFac
         super(Product.class);
     }
 
+    @Override
+    public List<Product> findAll() {
+        return em.createQuery("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.category ORDER BY p.id DESC", Product.class)
+                .getResultList();
+    }
 
     @Override
-    public List<Product> findExpiredActiveProducts(LocalDateTime currentTime) {
+    public List<Product> findBySeller(Long sellerId) {
+        return em.createQuery("SELECT DISTINCT p FROM Product p WHERE p.seller.id = :sellerId ORDER BY p.id DESC", Product.class)
+                .setParameter("sellerId", sellerId)
+                .getResultList();
+    }
 
-        return em.createQuery("SELECT p FROM Product p WHERE p.status = com.acikartirma.acikartirma.enums.ProductStatus.ACTIVE AND p.endTime <= :currentTime", Product.class)
-                .setParameter("currentTime", currentTime)
+    @Override
+    public List<Product> findExpiredActiveProducts(LocalDateTime now) {
+        return em.createQuery("SELECT DISTINCT p FROM Product p WHERE p.status = 'ACTIVE' AND p.endTime <= :now", Product.class)
+                .setParameter("now", now)
                 .getResultList();
     }
 }

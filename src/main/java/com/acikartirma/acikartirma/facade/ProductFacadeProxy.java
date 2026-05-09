@@ -18,7 +18,6 @@ public class ProductFacadeProxy implements ProductFacadeLocal {
     @Override
     public void create(Product entity) {
         logger.info("PROXY: Yeni bir ürün ekleniyor: " + entity.getName());
-
         realService.create(entity);
     }
 
@@ -34,7 +33,11 @@ public class ProductFacadeProxy implements ProductFacadeLocal {
         realService.remove(entity);
     }
 
-
+    @Override
+    public Product find(Object id) {
+        logger.info("PROXY: Ürün aranıyor. ID: " + id);
+        return realService.find(id);
+    }
 
     @Override
     public List<Product> findAll() {
@@ -43,7 +46,14 @@ public class ProductFacadeProxy implements ProductFacadeLocal {
     }
 
     @Override
+    public List<Product> findBySeller(Long sellerId) {
+        logger.info("PROXY: Satıcının ürünleri listeleniyor. Satıcı ID: " + sellerId);
+        return realService.findBySeller(sellerId);
+    }
+
+    @Override
     public List<Product> findExpiredActiveProducts(LocalDateTime currentTime) {
+        logger.info("PROXY: Süresi dolan ihaleler kontrol ediliyor...");
         return realService.findExpiredActiveProducts(currentTime);
     }
 }
