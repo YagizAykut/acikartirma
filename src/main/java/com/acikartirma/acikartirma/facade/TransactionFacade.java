@@ -8,7 +8,6 @@ import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
 @Stateless
-@SuppressWarnings("unused")
 public class TransactionFacade extends AbstractFacade<Transaction> implements TransactionFacadeLocal {
 
     @PersistenceContext
@@ -23,6 +22,10 @@ public class TransactionFacade extends AbstractFacade<Transaction> implements Tr
         super(Transaction.class);
     }
 
+    @Override
+    public void update(Transaction transaction) {
+        this.edit(transaction);
+    }
 
     @Override
     public List<Transaction> findTransactionsByUser(Long userId) {

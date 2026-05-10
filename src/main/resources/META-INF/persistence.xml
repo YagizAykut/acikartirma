@@ -18,7 +18,7 @@
 
         <properties>
             <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
-            <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
+            <property name="eclipselink.ddl-generation" value="none"/>
             <property name="eclipselink.logging.level" value="FINE"/>
         </properties>
     </persistence-unit>

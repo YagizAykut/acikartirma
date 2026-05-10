@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @ViewScoped
 public class ProductBean implements Serializable {
 
-    @EJB(beanName = "ProductFacadeProxy")
+    @EJB(beanName = "ProductFacade")
     private ProductFacadeLocal productFacade;
 
     @EJB
