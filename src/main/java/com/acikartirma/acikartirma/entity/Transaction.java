@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transactions")
+@SuppressWarnings("unused")
 public class Transaction implements Serializable {
 
     @Id

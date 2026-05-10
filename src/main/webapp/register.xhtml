@@ -1,172 +1,65 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core"
-      xmlns:html5="http://xmlns.jcp.org/jsf/passthrough">
-<h:head>
-    <title>Açık Artırma - Kayıt Ol</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px 0;
-        }
 
-        .register-card {
-            background-color: #ffffff;
-            padding: 35px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-        }
+<ui:composition template="/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:html5="http://xmlns.jcp.org/jsf/passthrough"
+                xmlns:ui="jakarta.faces.facelets">
 
-        .register-card h2 {
-            margin-top: 0;
-            color: #333;
-            margin-bottom: 25px;
-            font-size: 24px;
-        }
+    <ui:define name="title">Açık Artırma - Kayıt Ol</ui:define>
 
-        .form-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
+    <ui:define name="content">
+        <div class="auth-layout">
+            <div class="register-card">
+                <h2>Yeni Hesap Oluştur</h2>
 
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-            flex: 1;
-        }
+                <h:form>
+                    <h:messages globalOnly="false" styleClass="error-messages" />
 
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            color: #555;
-            font-weight: 500;
-            font-size: 13px;
-        }
+                    <div class="form-row">
+                        <div class="form-group">
+                            <h:outputLabel value="Adınız" />
+                            <h:inputText value="#{userBean.newUser.firstName}" required="true"
+                                         requiredMessage="Ad gereklidir." styleClass="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <h:outputLabel value="Soyadınız" />
+                            <h:inputText value="#{userBean.newUser.lastName}" required="true"
+                                         requiredMessage="Soyad gereklidir." styleClass="form-control" />
+                        </div>
+                    </div>
 
-        .form-control {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 14px;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
+                    <div class="form-group">
+                        <h:outputLabel value="Kullanıcı Adı" />
+                        <h:inputText value="#{userBean.newUser.username}" required="true"
+                                     requiredMessage="Kullanıcı adı gereklidir." styleClass="form-control" />
+                    </div>
 
-        .form-control:focus {
-            border-color: #007bff;
-            outline: none;
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
-        }
+                    <div class="form-group">
+                        <h:outputLabel value="E-posta Adresi" />
+                        <h:inputText value="#{userBean.newUser.email}" required="true"
+                                     requiredMessage="E-posta gereklidir." styleClass="form-control"
+                                     html5:placeholder="ornek@mail.com" />
+                    </div>
 
-        .btn-primary {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 15px;
-        }
+                    <div class="form-group">
+                        <h:outputLabel value="Telefon Numarası" />
+                        <h:inputText value="#{userBean.newUser.phoneNumber}" required="true"
+                                     requiredMessage="Telefon gereklidir." styleClass="form-control"
+                                     html5:placeholder="5555555555" />
+                    </div>
 
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
+                    <div class="form-group">
+                        <h:outputLabel value="Şifre" />
+                        <h:inputSecret value="#{userBean.newUser.password}" required="true"
+                                       requiredMessage="Şifre gereklidir." styleClass="form-control" />
+                    </div>
 
-        .login-link {
-            display: inline-block;
-            margin-top: 20px;
-            color: #007bff;
-            text-decoration: none;
-            font-size: 14px;
-        }
+                    <h:commandButton value="Hemen Kayıt Ol" action="#{userBean.register}" styleClass="btn btn-primary-auth" />
 
-        .login-link:hover {
-            color: #0056b3;
-            text-decoration: underline;
-        }
-
-        .error-messages {
-            color: #721c24;
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            padding: 10px;
-            border-radius: 6px;
-            list-style-type: none;
-            margin-bottom: 20px;
-            font-size: 13px;
-            text-align: left;
-        }
-    </style>
-</h:head>
-<h:body>
-
-    <div class="register-card">
-        <h2>Yeni Hesap Oluştur</h2>
-
-        <h:form>
-            <h:messages globalOnly="false" styleClass="error-messages" />
-
-            <div class="form-row">
-                <div class="form-group">
-                    <h:outputLabel value="Adınız" />
-                    <h:inputText value="#{userBean.firstName}" required="true"
-                                 requiredMessage="Ad gereklidir." styleClass="form-control" />
-                </div>
-                <div class="form-group">
-                    <h:outputLabel value="Soyadınız" />
-                    <h:inputText value="#{userBean.lastName}" required="true"
-                                 requiredMessage="Soyad gereklidir." styleClass="form-control" />
-                </div>
+                    <h:link value="Zaten hesabın var mı? Giriş Yap" outcome="login" styleClass="login-link" />
+                </h:form>
             </div>
-
-            <div class="form-group">
-                <h:outputLabel value="Kullanıcı Adı" />
-                <h:inputText value="#{userBean.username}" required="true"
-                             requiredMessage="Kullanıcı adı gereklidir." styleClass="form-control" />
-            </div>
-
-            <div class="form-group">
-                <h:outputLabel value="E-posta Adresi" />
-                <h:inputText value="#{userBean.email}" required="true"
-                             requiredMessage="E-posta gereklidir." styleClass="form-control"
-                             html5:placeholder="ornek@mail.com" />
-            </div>
-
-            <div class="form-group">
-                <h:outputLabel value="Telefon Numarası" />
-                <h:inputText value="#{userBean.phoneNumber}" required="true"
-                             requiredMessage="Telefon gereklidir." styleClass="form-control"
-                             html5:placeholder="5555555555" />
-            </div>
-
-            <div class="form-group">
-                <h:outputLabel value="Şifre" />
-                <h:inputSecret value="#{userBean.password}" required="true"
-                               requiredMessage="Şifre gereklidir." styleClass="form-control" />
-            </div>
-
-            <h:commandButton value="Hemen Kayıt Ol" action="#{userBean.register}" styleClass="btn-primary" />
-
-            <h:link value="Zaten hesabın var mı? Giriş Yap" outcome="login" styleClass="login-link" />
-        </h:form>
-    </div>
-
-</h:body>
-</html>
+        </div>
+    </ui:define>
+</ui:composition>

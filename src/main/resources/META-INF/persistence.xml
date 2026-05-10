@@ -12,12 +12,13 @@
         <class>com.acikartirma.acikartirma.entity.Bid</class>
         <class>com.acikartirma.acikartirma.entity.Transaction</class>
 
+        <class>com.acikartirma.acikartirma.entity.Category</class>
+        <class>com.acikartirma.acikartirma.entity.Notification</class>
+        <class>com.acikartirma.acikartirma.entity.ProductQuestion</class>
+
         <properties>
-
             <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
-
             <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
-
             <property name="eclipselink.logging.level" value="FINE"/>
         </properties>
     </persistence-unit>

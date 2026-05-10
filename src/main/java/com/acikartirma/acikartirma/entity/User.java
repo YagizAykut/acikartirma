@@ -8,6 +8,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
+@SuppressWarnings("unused")
 public class User implements Serializable {
 
     @Id

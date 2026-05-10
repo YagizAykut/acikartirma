@@ -20,4 +20,9 @@ public class CategoryFacade extends AbstractFacade<Category> implements Category
     public CategoryFacade() {
         super(Category.class);
     }
+
+    @Override
+    public void update(Category category) {
+        this.edit(category);
+    }
 }

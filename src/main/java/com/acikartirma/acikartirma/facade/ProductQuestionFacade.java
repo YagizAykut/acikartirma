@@ -8,6 +8,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
 @Stateless
+@SuppressWarnings("unused")
 public class ProductQuestionFacade extends AbstractFacade<ProductQuestion> implements ProductQuestionFacadeLocal {
 
     @PersistenceContext
@@ -23,9 +24,22 @@ public class ProductQuestionFacade extends AbstractFacade<ProductQuestion> imple
     }
 
     @Override
+    public void update(ProductQuestion productQuestion) {
+        this.edit(productQuestion); // AbstractFacade'deki merge işlemini tetikler
+    }
+
+    @Override
     public List<ProductQuestion> findQuestionsByProduct(Long productId) {
-        return em.createQuery("SELECT pq FROM ProductQuestion pq WHERE pq.product.id = :productId ORDER BY pq.createdAt DESC", ProductQuestion.class)
+        return em.createQuery("SELECT q FROM ProductQuestion q WHERE q.product.id = :productId ORDER BY q.createdAt DESC", ProductQuestion.class)
                 .setParameter("productId", productId)
+                .getResultList();
+    }
+
+    @Override
+    public List<ProductQuestion> findQuestionsByUser(Long userId) {
+        // Not: Eğer entity içinde 'buyer' alanı yoksa 'user' alanı üzerinden sorgu yaparız
+        return em.createQuery("SELECT q FROM ProductQuestion q WHERE q.user.id = :userId ORDER BY q.createdAt DESC", ProductQuestion.class)
+                .setParameter("userId", userId)
                 .getResultList();
     }
 }

@@ -1,149 +1,39 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/2001/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core">
-<h:head>
-    <title>Açık Artırma - Giriş Yap</title>
-    <style>
-        /* Genel sayfa arka planı ve hizalama */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            height: 100vh;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
 
-        /* Giriş kartı tasarımı */
-        .login-card {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
+<ui:composition template="/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:ui="jakarta.faces.facelets">
 
-        .login-card h2 {
-            margin-top: 0;
-            color: #333;
-            margin-bottom: 25px;
-            font-size: 24px;
-        }
+    <ui:define name="title">Açık Artırma - Giriş Yap</ui:define>
 
-        /* Form elemanlarının gruplanması */
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
+    <ui:define name="content">
+        <div class="auth-layout">
+            <div class="login-card">
+                <h2>Sisteme Giriş</h2>
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-            font-size: 14px;
-        }
+                <h:form>
+                    <h:messages globalOnly="false" styleClass="error-messages" />
 
-        /* Input (Metin Kutusu) Tasarımı */
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
+                    <div class="form-group">
+                        <h:outputLabel value="Kullanıcı Adı" />
+                        <h:inputText value="#{userBean.loginUsername}" required="true"
+                                     requiredMessage="Lütfen kullanıcı adınızı girin."
+                                     styleClass="form-control" />
+                    </div>
 
-        .form-control:focus {
-            border-color: #007bff;
-            outline: none;
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
-        }
+                    <div class="form-group">
+                        <h:outputLabel value="Şifre" />
+                        <h:inputSecret value="#{userBean.loginPassword}" required="true"
+                                       requiredMessage="Lütfen şifrenizi girin."
+                                       styleClass="form-control" />
+                    </div>
 
-        /* Buton Tasarımı */
-        .btn-primary {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-        }
+                    <h:commandButton value="Giriş Yap" action="#{userBean.login}" styleClass="btn btn-primary-auth" />
 
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-
-        /* Kayıt Ol Linki Tasarımı */
-        .register-link {
-            display: inline-block;
-            margin-top: 20px;
-            color: #007bff;
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s;
-        }
-
-        .register-link:hover {
-            color: #0056b3;
-            text-decoration: underline;
-        }
-
-        /* Hata Mesajları Tasarımı */
-        .error-messages {
-            color: #721c24;
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            padding: 10px 15px;
-            border-radius: 6px;
-            list-style-type: none;
-            margin: 0 0 20px 0;
-            font-size: 13px;
-            text-align: left;
-        }
-        .error-messages li {
-            margin-bottom: 5px;
-        }
-    </style>
-</h:head>
-<h:body>
-
-    <div class="login-card">
-        <h2>Sisteme Giriş</h2>
-
-        <h:form>
-            <h:messages globalOnly="false" styleClass="error-messages" />
-
-            <div class="form-group">
-                <h:outputLabel value="Kullanıcı Adı" />
-                <h:inputText value="#{userBean.username}" required="true"
-                             requiredMessage="Lütfen kullanıcı adınızı girin."
-                             styleClass="form-control" />
+                    <h:link value="Hesabın yok mu? Buradan kayıt ol" outcome="register" styleClass="register-link" />
+                </h:form>
             </div>
-
-            <div class="form-group">
-                <h:outputLabel value="Şifre" />
-                <h:inputSecret value="#{userBean.password}" required="true"
-                               requiredMessage="Lütfen şifrenizi girin."
-                               styleClass="form-control" />
-            </div>
-
-            <h:commandButton value="Giriş Yap" action="#{userBean.login}" styleClass="btn-primary" />
-
-            <h:link value="Hesabın yok mu? Buradan kayıt ol" outcome="register" styleClass="register-link" />
-        </h:form>
-    </div>
-
-</h:body>
-</html>
+        </div>
+    </ui:define>
+</ui:composition>

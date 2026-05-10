@@ -12,6 +12,7 @@ import java.util.List;
 
 @Named
 @ViewScoped
+@SuppressWarnings("unused")
 public class NotificationBean implements Serializable {
 
     @EJB

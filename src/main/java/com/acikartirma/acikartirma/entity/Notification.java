@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notifications")
+@SuppressWarnings("unused")
 public class Notification implements Serializable {
 
     @Id

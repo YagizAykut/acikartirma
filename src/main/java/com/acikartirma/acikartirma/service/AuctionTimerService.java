@@ -9,6 +9,7 @@ import com.acikartirma.acikartirma.facadelocal.NotificationFacadeLocal;
 import com.acikartirma.acikartirma.facadelocal.ProductFacadeLocal;
 import com.acikartirma.acikartirma.facadelocal.TransactionFacadeLocal;
 import com.acikartirma.acikartirma.facadelocal.UserFacadeLocal;
+import com.acikartirma.acikartirma.websocket.AuctionWebSocket;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
@@ -18,9 +19,10 @@ import java.util.List;
 
 @Singleton
 @Startup
+@SuppressWarnings("unused")
 public class AuctionTimerService {
 
-    @EJB
+    @EJB(beanName = "ProductFacadeProxy") // Buraya da açıkça Proxy'i işaret ettik
     private ProductFacadeLocal productFacade;
 
     @EJB
@@ -37,7 +39,11 @@ public class AuctionTimerService {
         LocalDateTime now = LocalDateTime.now();
         List<Product> expiredProducts = productFacade.findExpiredActiveProducts(now);
 
+        boolean hasChanges = false;
+
         for (Product product : expiredProducts) {
+            hasChanges = true;
+
             if (product.getWinner() != null) {
                 product.setStatus(ProductStatus.SOLD);
 
@@ -70,6 +76,11 @@ public class AuctionTimerService {
             }
 
             productFacade.update(product);
+        }
+
+        // Değişiklik varsa tüm bağlı kullanıcılara anlık sayfayı yenileme sinyali gönderiliyor
+        if (hasChanges) {
+            AuctionWebSocket.broadcast("RELOAD_PAGE");
         }
     }
 }

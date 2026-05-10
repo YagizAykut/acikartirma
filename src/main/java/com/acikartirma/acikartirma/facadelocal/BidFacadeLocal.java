@@ -5,6 +5,7 @@ import jakarta.ejb.Local;
 import java.util.List;
 
 @Local
+@SuppressWarnings("unused")
 public interface BidFacadeLocal {
     void create(Bid bid);
     void update(Bid bid);

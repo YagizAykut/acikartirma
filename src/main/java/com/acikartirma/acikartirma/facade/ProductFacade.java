@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Stateless
+@SuppressWarnings("unused")
 public class ProductFacade extends AbstractFacade<Product> implements ProductFacadeLocal {
 
     @PersistenceContext
@@ -24,22 +25,22 @@ public class ProductFacade extends AbstractFacade<Product> implements ProductFac
     }
 
     @Override
-    public List<Product> findAll() {
-        return em.createQuery("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.category ORDER BY p.id DESC", Product.class)
+    public void update(Product product) {
+        // AbstractFacade içindeki merge işlemini tetikler
+        this.edit(product);
+    }
+
+    @Override
+    public List<Product> findExpiredActiveProducts(LocalDateTime now) {
+        return em.createQuery("SELECT p FROM Product p WHERE p.status = com.acikartirma.acikartirma.enums.ProductStatus.ACTIVE AND p.endTime <= :now", Product.class)
+                .setParameter("now", now)
                 .getResultList();
     }
 
     @Override
     public List<Product> findBySeller(Long sellerId) {
-        return em.createQuery("SELECT DISTINCT p FROM Product p WHERE p.seller.id = :sellerId ORDER BY p.id DESC", Product.class)
+        return em.createQuery("SELECT p FROM Product p WHERE p.seller.id = :sellerId", Product.class)
                 .setParameter("sellerId", sellerId)
-                .getResultList();
-    }
-
-    @Override
-    public List<Product> findExpiredActiveProducts(LocalDateTime now) {
-        return em.createQuery("SELECT DISTINCT p FROM Product p WHERE p.status = 'ACTIVE' AND p.endTime <= :now", Product.class)
-                .setParameter("now", now)
                 .getResultList();
     }
 }

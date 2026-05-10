@@ -1,4 +1,4 @@
-package com.acikartirma.acikartirma.service;
+package com.acikartirma.acikartirma.websocket;
 
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnOpen;
@@ -10,26 +10,22 @@ import java.util.HashSet;
 import java.util.Set;
 
 @ServerEndpoint("/auction")
+@SuppressWarnings("unused")
 public class AuctionWebSocket {
-
 
     private static final Set<Session> sessions = Collections.synchronizedSet(new HashSet<>());
 
     @OnOpen
     public void onOpen(Session session) {
-
         sessions.add(session);
     }
 
     @OnClose
     public void onClose(Session session) {
-
         sessions.remove(session);
     }
 
-
     public static void broadcast(String message) {
-
         synchronized (sessions) {
             for (Session session : sessions) {
                 if (session.isOpen()) {

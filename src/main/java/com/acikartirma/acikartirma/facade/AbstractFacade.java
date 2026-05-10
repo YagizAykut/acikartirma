@@ -1,8 +1,6 @@
 package com.acikartirma.acikartirma.facade;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.CacheRetrieveMode;
-import jakarta.persistence.CacheStoreMode;
 import java.util.List;
 
 public abstract class AbstractFacade<T> {
@@ -19,7 +17,8 @@ public abstract class AbstractFacade<T> {
         getEntityManager().persist(entity);
     }
 
-    public void update(T entity) {
+    // KRİTİK: merge kullanımı ürünün çoğalmasını engeller, mevcut ID'yi günceller.
+    public void edit(T entity) {
         getEntityManager().merge(entity);
     }
 
@@ -34,13 +33,23 @@ public abstract class AbstractFacade<T> {
     public List<T> findAll() {
         jakarta.persistence.criteria.CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
         cq.select(cq.from(entityClass));
+        return getEntityManager().createQuery(cq).getResultList();
+    }
 
-        jakarta.persistence.Query query = getEntityManager().createQuery(cq);
+    public List<T> findRange(int[] range) {
+        jakarta.persistence.criteria.CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
+        cq.select(cq.from(entityClass));
+        jakarta.persistence.Query q = getEntityManager().createQuery(cq);
+        q.setMaxResults(range[1] - range[0] + 1);
+        q.setFirstResult(range[0]);
+        return q.getResultList();
+    }
 
-
-        query.setHint("jakarta.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS);
-        query.setHint("jakarta.persistence.cache.storeMode", CacheStoreMode.REFRESH);
-
-        return query.getResultList();
+    public int count() {
+        jakarta.persistence.criteria.CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
+        jakarta.persistence.criteria.Root<T> rt = cq.from(entityClass);
+        cq.select(getEntityManager().getCriteriaBuilder().count(rt));
+        jakarta.persistence.Query q = getEntityManager().createQuery(cq);
+        return ((Long) q.getSingleResult()).intValue();
     }
 }

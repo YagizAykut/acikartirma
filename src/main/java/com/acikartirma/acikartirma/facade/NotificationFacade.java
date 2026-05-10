@@ -8,6 +8,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
 @Stateless
+@SuppressWarnings("unused")
 public class NotificationFacade extends AbstractFacade<Notification> implements NotificationFacadeLocal {
 
     @PersistenceContext
@@ -23,7 +24,13 @@ public class NotificationFacade extends AbstractFacade<Notification> implements 
     }
 
     @Override
+    public void update(Notification notification) {
+        this.edit(notification);
+    }
+
+    @Override
     public List<Notification> findUnreadNotificationsByUser(Long userId) {
+        // 'isRead' yerine 'read' olarak güncellendi:
         return em.createQuery("SELECT n FROM Notification n WHERE n.user.id = :userId AND n.read = false ORDER BY n.createdAt DESC", Notification.class)
                 .setParameter("userId", userId)
                 .getResultList();

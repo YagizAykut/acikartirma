@@ -1,550 +1,259 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core"
-      xmlns:html5="http://xmlns.jcp.org/jsf/passthrough"
-      xmlns:ui="jakarta.faces.facelets">
-<h:head>
-    <title>Açık Artırma - Ana Sayfa</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+<ui:composition template="/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:html5="jakarta.faces.passthrough"
+                xmlns:ui="jakarta.faces.facelets">
 
-        .card {
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            padding: 25px;
-            margin-bottom: 25px;
-        }
+    <ui:define name="title">Açık Artırma - Ana Sayfa</ui:define>
 
-        .card-title {
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: #2c3e50;
-            font-size: 20px;
-            border-bottom: 2px solid #f1f3f5;
-            padding-bottom: 10px;
-        }
+    <ui:define name="content">
+        <div class="page-padding">
+            <h:panelGroup rendered="#{userBean.loggedIn}">
+                <div class="container">
 
-        .header-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
+                    <h:messages globalOnly="true" errorClass="alert-error" infoClass="alert-info" />
 
-        .user-info h2 {
-            margin: 0 0 5px 0;
-            font-size: 22px;
-            color: #34495e;
-        }
-
-        .balance-badge {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 18px;
-            display: inline-block;
-        }
-
-        .action-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .form-control {
-            padding: 10px 15px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        .form-control:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-
-        .btn {
-            padding: 10px 18px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-success { background-color: #28a745; color: white; }
-        .btn-success:hover { background-color: #218838; }
-
-        .btn-danger { background-color: #dc3545; color: white; }
-        .btn-danger:hover { background-color: #c82333; }
-
-        .btn-primary { background-color: #007bff; color: white; }
-        .btn-primary:hover { background-color: #0069d9; }
-
-        .btn-info { background-color: #17a2b8; color: white; }
-        .btn-info:hover { background-color: #138496; }
-
-        .product-form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            align-items: end;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            margin-bottom: 5px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #555;
-        }
-
-        .modern-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        .modern-table th {
-            background-color: #f8f9fa;
-            color: #495057;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .modern-table td {
-            padding: 15px;
-            border-bottom: 1px solid #e9ecef;
-            vertical-align: middle;
-        }
-
-        .modern-table tr:hover {
-            background-color: #f1f3f5;
-        }
-
-        .product-img {
-            width: 70px;
-            height: 70px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            cursor: zoom-in;
-            transition: transform 0.2s;
-        }
-
-        .product-img:hover {
-            transform: scale(1.05);
-        }
-
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            display: inline-block;
-        }
-        .status-sold { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .status-expired { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .status-active { color: #856404; font-style: italic; font-size: 13px; display: block; margin-bottom: 8px; }
-
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #f5c6cb;
-            list-style-type: none;
-            font-weight: 500;
-        }
-
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #bee5eb;
-            list-style-type: none;
-            font-weight: 500;
-        }
-
-        .unauthorized-card {
-            text-align: center;
-            padding: 50px;
-            margin-top: 10vh;
-        }
-
-        .image-modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            padding-top: 60px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.85);
-            backdrop-filter: blur(4px);
-        }
-
-        .image-modal-content {
-            margin: auto;
-            display: block;
-            max-width: 85%;
-            max-height: 85vh;
-            border-radius: 10px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-            animation: zoomIn 0.3s ease;
-        }
-
-        @keyframes zoomIn {
-            from {transform: scale(0.6); opacity: 0;}
-            to {transform: scale(1); opacity: 1;}
-        }
-
-        .image-modal-close {
-            position: absolute;
-            top: 25px;
-            right: 40px;
-            color: #f1f1f1;
-            font-size: 45px;
-            font-weight: bold;
-            transition: 0.3s;
-            cursor: pointer;
-        }
-
-        .image-modal-close:hover,
-        .image-modal-close:focus {
-            color: #ff4757;
-            text-decoration: none;
-        }
-
-        .notif-container {
-            position: relative;
-            display: inline-block;
-        }
-
-        .notif-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%;
-            background: white;
-            min-width: 320px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-            z-index: 1000;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 10px;
-            border: 1px solid #eee;
-        }
-
-        .notif-container:hover .notif-menu {
-            display: block;
-        }
-
-        .notif-item {
-            border-bottom: 1px solid #f8f9fa;
-            padding: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .notif-item:last-child {
-            border-bottom: none;
-        }
-
-        .notif-badge {
-            background-color: #dc3545;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 11px;
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            font-weight: bold;
-        }
-    </style>
-</h:head>
-<h:body>
-
-    <h:panelGroup rendered="#{userBean.loggedIn}">
-        <div class="container">
-
-            <h:messages globalOnly="true" errorClass="alert-error" infoClass="alert-info" />
-
-            <div class="card header-card">
-                <div class="user-info">
-                    <h2>Hoş geldin, #{userBean.currentUser.username}! 👋</h2>
-                    <span class="balance-badge">Cüzdan: #{userBean.currentUser.balance} TL</span>
-                </div>
-
-                <h:form styleClass="action-group">
-                    <div class="notif-container">
-                        <div class="btn btn-info" style="background-color: #f1c40f; color: #333; border: none;">
-                            🔔 Bildirimler
-                            <h:outputText value="#{notificationBean.unreadNotifications.size()}"
-                                          rendered="#{notificationBean.unreadNotifications.size() > 0}"
-                                          styleClass="notif-badge" />
+                    <div class="card header-card">
+                        <div class="user-info">
+                            <h2>Hoş geldin, #{userBean.currentUser.username}! 👋</h2>
+                            <span class="balance-badge">Cüzdan: #{userBean.currentUser.balance} TL</span>
                         </div>
 
-                        <div class="notif-menu">
-                            <h:panelGroup rendered="#{empty notificationBean.unreadNotifications}">
-                                <div style="text-align: center; color: #6c757d; font-size: 14px;">Yeni bildiriminiz yok.</div>
-                            </h:panelGroup>
-
-                            <h:panelGroup rendered="#{not empty notificationBean.unreadNotifications}">
-                                <div style="text-align: right; margin-bottom: 10px;">
-                                    <h:commandLink value="Tümünü Okundu İşaretle" action="#{notificationBean.markAllAsRead}" style="font-size: 12px; color: #007bff; text-decoration: none;" />
+                        <h:form styleClass="action-group">
+                            <div class="notif-container">
+                                <div class="btn btn-info" style="background-color: #f1c40f; color: #333; border: none;">
+                                    🔔 Bildirimler
+                                    <h:outputText value="#{notificationBean.unreadNotifications.size()}"
+                                                  rendered="#{notificationBean.unreadNotifications.size() > 0}"
+                                                  styleClass="notif-badge" />
                                 </div>
 
-                                <ui:repeat value="#{notificationBean.unreadNotifications}" var="notif">
-                                    <div class="notif-item">
-                                        <div style="flex: 1;">
-                                            <p style="margin: 0; font-size: 13px; font-weight: 500; color: #333;">#{notif.message}</p>
-                                            <small style="color: #adb5bd;">
-                                                <h:outputText value="#{notif.createdAt}">
-                                                    <f:convertDateTime type="localDateTime" pattern="dd.MM HH:mm" />
-                                                </h:outputText>
-                                            </small>
+                                <div class="notif-menu">
+                                    <h:panelGroup rendered="#{empty notificationBean.unreadNotifications}">
+                                        <div style="text-align: center; color: #6c757d; font-size: 14px;">Yeni bildiriminiz yok.</div>
+                                    </h:panelGroup>
+
+                                    <h:panelGroup rendered="#{not empty notificationBean.unreadNotifications}">
+                                        <div style="text-align: right; margin-bottom: 10px;">
+                                            <h:commandLink value="Tümünü Okundu İşaretle" action="#{notificationBean.markAllAsRead}" style="font-size: 12px; color: #007bff; text-decoration: none;" />
                                         </div>
-                                        <h:commandLink value="✖" action="#{notificationBean.markAsRead(notif)}" style="color: #dc3545; text-decoration: none; margin-left: 10px; font-weight: bold;" title="Okundu olarak işaretle" />
-                                    </div>
-                                </ui:repeat>
-                            </h:panelGroup>
-                        </div>
+
+                                        <ui:repeat value="#{notificationBean.unreadNotifications}" var="notif">
+                                            <div class="notif-item">
+                                                <div style="flex: 1;">
+                                                    <p style="margin: 0; font-size: 13px; font-weight: 500; color: #333;">#{notif.message}</p>
+                                                    <small style="color: #adb5bd;">
+                                                        <h:outputText value="#{notif.createdAt}">
+                                                            <f:convertDateTime type="localDateTime" pattern="dd.MM HH:mm" />
+                                                        </h:outputText>
+                                                    </small>
+                                                </div>
+                                                <h:commandLink value="✖" action="#{notificationBean.markAsRead(notif)}" style="color: #dc3545; text-decoration: none; margin-left: 10px; font-weight: bold;" title="Okundu olarak işaretle" />
+                                            </div>
+                                        </ui:repeat>
+                                    </h:panelGroup>
+                                </div>
+                            </div>
+
+                            <h:link value="Profilim" outcome="profile" styleClass="btn btn-info" />
+
+                            <h:inputText value="#{userBean.loadAmount}" styleClass="form-control" html5:placeholder="Tutar (TL)" required="true" />
+                            <h:commandButton value="Bakiye Yükle" action="#{userBean.loadBalance}" styleClass="btn btn-success" />
+                            <h:commandButton value="Güvenli Çıkış" action="#{userBean.logout}" immediate="true" styleClass="btn btn-danger" />
+                        </h:form>
                     </div>
 
-                    <h:link value="Profilim" outcome="profile" styleClass="btn btn-info" />
+                    <div class="card">
+                        <h3 class="card-title">Yeni Açık Artırma Başlat</h3>
+                        <h:form>
+                            <div class="product-form-grid">
+                                <div class="form-group">
+                                    <h:outputLabel value="Ürün Adı" />
+                                    <h:inputText value="#{productBean.name}" required="true" styleClass="form-control" />
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel value="Kısa Açıklama" />
+                                    <h:inputText value="#{productBean.description}" required="true" styleClass="form-control" />
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel value="Başlangıç Fiyatı (TL)" />
+                                    <h:inputText value="#{productBean.startingPrice}" required="true" styleClass="form-control" />
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel value="Süre (Dakika)" />
+                                    <h:inputText value="#{productBean.durationInMinutes}" required="true" styleClass="form-control" />
+                                </div>
+                                <div class="form-group">
+                                    <h:outputLabel value="Görsel URL" />
+                                    <h:inputText value="#{productBean.imagePath}" required="false" styleClass="form-control" html5:placeholder="https://..." />
+                                </div>
 
-                    <h:inputText value="#{userBean.loadAmount}" styleClass="form-control" html5:placeholder="Tutar (TL)" required="true" />
-                    <h:commandButton value="Bakiye Yükle" action="#{userBean.loadBalance}" styleClass="btn btn-success" />
-                    <h:commandButton value="Güvenli Çıkış" action="#{userBean.logout}" immediate="true" styleClass="btn btn-danger" />
-                </h:form>
-            </div>
+                                <div class="form-group">
+                                    <h:outputLabel value="Kategori" />
+                                    <h:selectOneMenu value="#{productBean.selectedCategoryId}" required="true" styleClass="form-control">
+                                        <f:selectItem itemLabel="--- Kategori Seçiniz ---" itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{productBean.categories}" var="cat" itemLabel="#{cat.name}" itemValue="#{cat.id}" />
+                                    </h:selectOneMenu>
+                                </div>
 
-            <div class="card">
-                <h3 class="card-title">Yeni Açık Artırma Başlat</h3>
-                <h:form>
-                    <div class="product-form-grid">
-                        <div class="form-group">
-                            <h:outputLabel value="Ürün Adı" />
-                            <h:inputText value="#{productBean.name}" required="true" styleClass="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <h:outputLabel value="Kısa Açıklama" />
-                            <h:inputText value="#{productBean.description}" required="true" styleClass="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <h:outputLabel value="Başlangıç Fiyatı (TL)" />
-                            <h:inputText value="#{productBean.startingPrice}" required="true" styleClass="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <h:outputLabel value="Süre (Dakika)" />
-                            <h:inputText value="#{productBean.durationInMinutes}" required="true" styleClass="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <h:outputLabel value="Görsel URL" />
-                            <h:inputText value="#{productBean.imagePath}" required="false" styleClass="form-control" html5:placeholder="https://..." />
-                        </div>
-
-                        <div class="form-group">
-                            <h:outputLabel value="Kategori" />
-                            <h:selectOneMenu value="#{productBean.selectedCategoryId}" required="true" styleClass="form-control">
-                                <f:selectItem itemLabel="--- Kategori Seçiniz ---" itemValue="#{null}" noSelectionOption="true" />
-                                <f:selectItems value="#{productBean.categories}" var="cat" itemLabel="#{cat.name}" itemValue="#{cat.id}" />
-                            </h:selectOneMenu>
-                        </div>
-
-                        <div class="form-group">
-                            <h:commandButton value="Ürünü İhaleye Çıkar" action="#{productBean.saveProduct}" styleClass="btn btn-primary" style="height: 40px;" />
-                        </div>
-                    </div>
-                </h:form>
-            </div>
-
-            <div class="card">
-                <h:form id="auctionForm">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f3f5; padding-bottom: 10px; margin-bottom: 15px;">
-                        <h3 class="card-title" style="border: none; padding: 0; margin: 0;">Güncel Açık Artırmalar</h3>
-
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <h:outputLabel value="Kategori Filtresi:" style="font-weight: bold; color: #555;" />
-                            <h:selectOneMenu value="#{productBean.filterCategoryId}" styleClass="form-control" style="width: 250px;">
-                                <f:selectItem itemLabel="Tüm Kategorileri Göster" itemValue="#{null}" />
-                                <f:selectItems value="#{productBean.categories}" var="cat" itemLabel="#{cat.name}" itemValue="#{cat.id}" />
-                                <f:ajax listener="#{productBean.filterProducts}" render="@form" />
-                            </h:selectOneMenu>
-                        </div>
+                                <div class="form-group">
+                                    <h:commandButton value="Ürünü İhaleye Çıkar" action="#{productBean.saveProduct}" styleClass="btn btn-primary" style="height: 40px;" />
+                                </div>
+                            </div>
+                        </h:form>
                     </div>
 
-                    <h:dataTable value="#{productBean.allProducts}" var="product" styleClass="modern-table">
+                    <div class="card">
+                        <h:form id="auctionForm">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f3f5; padding-bottom: 10px; margin-bottom: 15px;">
+                                <h3 class="card-title" style="border: none; padding: 0; margin: 0;">Güncel Açık Artırmalar</h3>
 
-                        <h:column>
-                            <f:facet name="header">Görsel</f:facet>
-                            <h:panelGroup rendered="#{not empty product.imagePath}">
-                                <img src="#{product.imagePath}" alt="Ürün" class="product-img" onclick="openImageModal(this.src)" title="Büyütmek için tıklayın" />
-                            </h:panelGroup>
-                            <h:panelGroup rendered="#{empty product.imagePath}">
-                                <div style="width: 70px; height: 70px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px dashed #ccc; color: #adb5bd; font-size: 10px;">Görsel Yok</div>
-                            </h:panelGroup>
-                        </h:column>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <h:outputLabel value="Kategori Filtresi:" style="font-weight: bold; color: #555;" />
+                                    <h:selectOneMenu value="#{productBean.filterCategoryId}" styleClass="form-control" style="width: 250px;">
+                                        <f:selectItem itemLabel="Tüm Kategorileri Göster" itemValue="#{null}" />
+                                        <f:selectItems value="#{productBean.categories}" var="cat" itemLabel="#{cat.name}" itemValue="#{cat.id}" />
+                                        <f:ajax listener="#{productBean.filterProducts}" render="@form" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </div>
 
-                        <h:column>
-                            <f:facet name="header">Ürün Adı</f:facet>
-                            <strong>#{product.name}</strong><br/>
-                            <span style="color: #6c757d; font-size: 13px;">#{product.description}</span><br/>
-                            <h:panelGroup rendered="#{not empty product.category}">
-                                <span style="background-color: #e9ecef; color: #495057; font-size: 11px; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px;">#{product.category.name}</span>
-                            </h:panelGroup>
-                        </h:column>
+                            <h:dataTable value="#{productBean.allProducts}" var="product" styleClass="modern-table">
 
-                        <h:column>
-                            <f:facet name="header">Bitiş Zamanı</f:facet>
-                            <h:outputText value="#{product.endTime}" style="font-weight: 500;">
-                                <f:convertDateTime type="localDateTime" pattern="dd.MM.yyyy HH:mm" />
-                            </h:outputText>
-                        </h:column>
+                                <h:column>
+                                    <f:facet name="header">Görsel</f:facet>
+                                    <h:panelGroup rendered="#{not empty product.imagePath}">
+                                        <img src="#{product.imagePath}" alt="Ürün" class="product-img" onclick="openImageModal(this.src)" title="Büyütmek için tıklayın" />
+                                    </h:panelGroup>
+                                    <h:panelGroup rendered="#{empty product.imagePath}">
+                                        <div style="width: 70px; height: 70px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px dashed #ccc; color: #adb5bd; font-size: 10px;">Görsel Yok</div>
+                                    </h:panelGroup>
+                                </h:column>
 
-                        <h:column>
-                            <f:facet name="header">Güncel Fiyat</f:facet>
-                            <strong style="color: #28a745; font-size: 16px;">#{product.currentPrice} TL</strong>
-                        </h:column>
+                                <h:column>
+                                    <f:facet name="header">Ürün Adı</f:facet>
+                                    <strong>#{product.name}</strong><br/>
+                                    <span style="color: #6c757d; font-size: 13px;">#{product.description}</span><br/>
+                                    <h:panelGroup rendered="#{not empty product.category}">
+                                        <span style="background-color: #e9ecef; color: #495057; font-size: 11px; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px;">#{product.category.name}</span>
+                                    </h:panelGroup>
+                                </h:column>
 
-                        <h:column>
-                            <f:facet name="header">Satıcı</f:facet>
-                            <span style="color: #495057;">@#{product.seller.username}</span>
-                        </h:column>
+                                <h:column>
+                                    <f:facet name="header">Bitiş Zamanı</f:facet>
+                                    <h:outputText value="#{product.endTime}" style="font-weight: 500;">
+                                        <f:convertDateTime type="localDateTime" pattern="dd.MM.yyyy HH:mm" />
+                                    </h:outputText>
+                                </h:column>
 
-                        <h:column>
-                            <f:facet name="header">İşlem / Durum</f:facet>
+                                <h:column>
+                                    <f:facet name="header">Güncel Fiyat</f:facet>
+                                    <strong style="color: #28a745; font-size: 16px;">#{product.currentPrice} TL</strong>
+                                </h:column>
 
-                            <h:panelGroup rendered="#{product.status eq 'ACTIVE' and product.seller.username ne userBean.currentUser.username}" style="display: flex; gap: 5px;">
-                                <h:inputText value="#{product.newBidAmount}" styleClass="form-control" style="width: 80px; padding: 6px;" />
-                                <h:commandButton value="Teklif İlet" action="#{productBean.placeBid(product)}" styleClass="btn btn-primary" style="padding: 6px 12px;">
-                                    <f:ajax execute="@form" render="@form" />
-                                </h:commandButton>
-                            </h:panelGroup>
+                                <h:column>
+                                    <f:facet name="header">Satıcı</f:facet>
+                                    <span style="color: #495057;">@#{product.seller.username}</span>
+                                </h:column>
 
-                            <h:panelGroup rendered="#{product.status eq 'ACTIVE' and product.seller.username eq userBean.currentUser.username}">
-                                <h:outputText value="Senin Ürünün (İhalede)" styleClass="status-active" />
-                                <h:commandButton value="İptal Et / Sil" action="#{productBean.deleteProduct(product)}" styleClass="btn btn-danger" style="padding: 4px 8px; font-size: 12px; margin-top: 4px;" onclick="return confirm('Bu ihaleyi iptal etmek ve ürünü silmek istediğinize emin misiniz?');">
-                                    <f:ajax execute="@this" render="@form" />
-                                </h:commandButton>
-                            </h:panelGroup>
+                                <h:column>
+                                    <f:facet name="header">İşlem / Durum</f:facet>
 
-                            <h:panelGroup rendered="#{product.status eq 'SOLD'}">
-                                <div class="status-badge status-sold">Satıldı</div><br/>
-                                <small style="color: #6c757d; margin-top:4px; display:inline-block;">Kazanan: <strong>#{product.winner.username}</strong></small>
-                            </h:panelGroup>
+                                    <h:panelGroup rendered="#{product.status eq 'ACTIVE' and product.seller.username ne userBean.currentUser.username}" style="display: flex; gap: 5px;">
+                                        <h:inputText value="#{product.newBidAmount}" styleClass="form-control" style="width: 80px; padding: 6px;" />
+                                        <h:commandButton value="Teklif İlet" action="#{productBean.placeBid(product)}" styleClass="btn btn-primary" style="padding: 6px 12px; margin-top: 0;">
+                                            <f:ajax execute="@form" render="@form" />
+                                        </h:commandButton>
+                                    </h:panelGroup>
 
-                            <h:panelGroup rendered="#{product.status eq 'EXPIRED'}">
-                                <div class="status-badge status-expired">Süresi Doldu</div><br/>
-                                <small style="color: #6c757d; margin-top:4px; display:inline-block;">Alıcı Çıkmadı</small>
-                            </h:panelGroup>
+                                    <h:panelGroup rendered="#{product.status eq 'ACTIVE' and product.seller.username eq userBean.currentUser.username}">
+                                        <h:outputText value="Senin Ürünün (İhalede)" styleClass="status-active" />
+                                        <h:commandButton value="İptal Et / Sil" action="#{productBean.deleteProduct(product)}" styleClass="btn btn-danger" style="padding: 4px 8px; font-size: 12px; margin-top: 4px;" onclick="return confirm('Bu ihaleyi iptal etmek ve ürünü silmek istediğinize emin misiniz?');">
+                                            <f:ajax execute="@this" render="@form" />
+                                        </h:commandButton>
+                                    </h:panelGroup>
 
-                        </h:column>
+                                    <h:panelGroup rendered="#{product.status eq 'SOLD'}">
+                                        <div class="status-badge status-sold">Satıldı</div><br/>
+                                        <small style="color: #6c757d; margin-top:4px; display:inline-block;">Kazanan: <strong>#{product.winner.username}</strong></small>
+                                    </h:panelGroup>
 
-                    </h:dataTable>
-                </h:form>
-            </div>
+                                    <h:panelGroup rendered="#{product.status eq 'EXPIRED'}">
+                                        <div class="status-badge status-expired">Süresi Doldu</div><br/>
+                                        <small style="color: #6c757d; margin-top:4px; display:inline-block;">Alıcı Çıkmadı</small>
+                                    </h:panelGroup>
 
-        </div>
-    </h:panelGroup>
+                                </h:column>
 
-    <h:panelGroup rendered="#{!userBean.loggedIn}">
-        <div class="container">
-            <div class="card unauthorized-card">
-                <h2 style="color: #dc3545; margin-bottom: 20px;">Sisteme Erişiminiz Yok</h2>
-                <p style="color: #6c757d; margin-bottom: 30px;">Açık artırmaları görebilmek ve teklif verebilmek için giriş yapmalısınız.</p>
-                <div style="display: flex; gap: 15px; justify-content: center;">
-                    <h:link value="Giriş Yap" outcome="login" styleClass="btn btn-primary" />
-                    <h:link value="Kayıt Ol" outcome="register" styleClass="btn btn-success" />
+                            </h:dataTable>
+                        </h:form>
+                    </div>
+
                 </div>
+            </h:panelGroup>
+
+            <h:panelGroup rendered="#{!userBean.loggedIn}">
+                <div class="container">
+                    <div class="card unauthorized-card">
+                        <h2 style="color: #dc3545; margin-bottom: 20px;">Sisteme Erişiminiz Yok</h2>
+                        <p style="color: #6c757d; margin-bottom: 30px;">Açık artırmaları görebilmek ve teklif verebilmek için giriş yapmalısınız.</p>
+                        <div style="display: flex; gap: 15px; justify-content: center;">
+                            <h:link value="Giriş Yap" outcome="login" styleClass="btn btn-primary" style="width: auto; margin-top: 0;" />
+                            <h:link value="Kayıt Ol" outcome="register" styleClass="btn btn-success" />
+                        </div>
+                    </div>
+                </div>
+            </h:panelGroup>
+
+            <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+                <span class="image-modal-close" onclick="closeImageModal()">&#215;</span>
+                <img class="image-modal-content" id="expandedImg" src=""/>
+            </div>
+
+            <div id="notificationToast" style="display:none; position:fixed; top:20px; right:20px; background-color:#28a745; color:white; padding:15px 25px; border-radius:8px; z-index:1000; font-weight:600; box-shadow: 0px 5px 15px rgba(0,0,0,0.2); font-size: 15px;">
             </div>
         </div>
-    </h:panelGroup>
+    </ui:define>
 
-    <div id="imageModal" class="image-modal" onclick="closeImageModal()">
-        <span class="image-modal-close" onclick="closeImageModal()">&#215;</span>
-        <img class="image-modal-content" id="expandedImg" />
-    </div>
+    <ui:define name="scripts">
+        <script type="text/javascript">
+            function openImageModal(imageSrc) {
+                var modal = document.getElementById("imageModal");
+                var modalImg = document.getElementById("expandedImg");
+                modal.style.display = "block";
+                modalImg.src = imageSrc;
+            }
 
-    <div id="notificationToast" style="display:none; position:fixed; top:20px; right:20px; background-color:#28a745; color:white; padding:15px 25px; border-radius:8px; z-index:1000; font-weight:600; box-shadow: 0px 5px 15px rgba(0,0,0,0.2); font-size: 15px;">
-    </div>
+            function closeImageModal() {
+                var modal = document.getElementById("imageModal");
+                modal.style.display = "none";
+            }
 
-    <script type="text/javascript">
-        function openImageModal(imageSrc) {
-            var modal = document.getElementById("imageModal");
-            var modalImg = document.getElementById("expandedImg");
-            modal.style.display = "block";
-            modalImg.src = imageSrc;
-        }
+            if ("#{userBean.loggedIn}" === "true") {
+                var wsUri = "ws://" + document.location.host + "/AcikArtirma-1.0-SNAPSHOT/auction";
+                var websocket = new WebSocket(wsUri);
 
-        function closeImageModal() {
-            var modal = document.getElementById("imageModal");
-            modal.style.display = "none";
-        }
+                websocket.onmessage = function(event) {
+                    if (event.data === "RELOAD_PAGE") {
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500);
+                        return;
+                    }
 
-        if ("#{userBean.loggedIn}" === "true") {
-            var wsUri = "ws://" + document.location.host + "/AcikArtirma-1.0-SNAPSHOT/auction";
-            var websocket = new WebSocket(wsUri);
+                    var toast = document.getElementById("notificationToast");
+                    toast.innerHTML = event.data;
+                    toast.style.display = "block";
 
-            websocket.onmessage = function(event) {
-
-                if (event.data === "RELOAD_PAGE") {
                     setTimeout(function() {
                         window.location.reload();
-                    }, 1500);
-                    return;
-                }
+                    }, 3000);
+                };
+            }
+        </script>
+    </ui:define>
 
-                var toast = document.getElementById("notificationToast");
-                toast.innerHTML = event.data;
-                toast.style.display = "block";
-
-                setTimeout(function() {
-                    window.location.reload();
-                }, 3000);
-            };
-        }
-    </script>
-
-</h:body>
-</html>
+</ui:composition>

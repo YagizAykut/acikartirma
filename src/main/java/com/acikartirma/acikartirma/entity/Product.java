@@ -9,6 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "products")
+@SuppressWarnings("unused")
 public class Product implements Serializable {
 
     @Id

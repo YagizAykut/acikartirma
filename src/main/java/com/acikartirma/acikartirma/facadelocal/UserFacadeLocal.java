@@ -5,6 +5,7 @@ import jakarta.ejb.Local;
 import java.util.List;
 
 @Local
+@SuppressWarnings("unused")
 public interface UserFacadeLocal {
     void create(User user);
     void update(User user);

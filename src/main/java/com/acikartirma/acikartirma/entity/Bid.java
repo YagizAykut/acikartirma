@@ -7,25 +7,22 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bids")
+@SuppressWarnings("unused")
 public class Bid implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Column(nullable = false)
     private BigDecimal amount;
-
 
     @Column(name = "bid_time", nullable = false)
     private LocalDateTime bidTime;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bidder_id", nullable = false)
     private User bidder;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
@@ -34,12 +31,10 @@ public class Bid implements Serializable {
     public Bid() {
     }
 
-
     @PrePersist
     protected void onCreate() {
         this.bidTime = LocalDateTime.now();
     }
-
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

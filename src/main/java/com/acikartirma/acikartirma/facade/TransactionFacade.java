@@ -8,6 +8,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
 @Stateless
+@SuppressWarnings("unused")
 public class TransactionFacade extends AbstractFacade<Transaction> implements TransactionFacadeLocal {
 
     @PersistenceContext

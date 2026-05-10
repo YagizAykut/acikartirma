@@ -6,6 +6,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "categories")
+@SuppressWarnings("unused")
 public class Category implements Serializable {
 
     @Id

@@ -5,6 +5,7 @@ import jakarta.ejb.Local;
 import java.util.List;
 
 @Local
+@SuppressWarnings("unused")
 public interface NotificationFacadeLocal {
 
     void create(Notification notification);

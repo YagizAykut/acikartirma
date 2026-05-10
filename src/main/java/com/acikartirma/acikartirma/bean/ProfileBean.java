@@ -15,6 +15,7 @@ import java.util.List;
 
 @Named
 @ViewScoped
+@SuppressWarnings("unused")
 public class ProfileBean implements Serializable {
 
     @EJB
