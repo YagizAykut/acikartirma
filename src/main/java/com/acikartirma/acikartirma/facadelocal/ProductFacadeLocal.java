@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Local
+@SuppressWarnings("unused")
 public interface ProductFacadeLocal {
     void create(Product product);
     void update(Product product);
@@ -13,7 +14,6 @@ public interface ProductFacadeLocal {
     Product find(Object id);
     List<Product> findAll();
 
-    // EKLENEN YENİ METOTLARIN İMZALARI BURADA
     List<Product> findBySeller(Long sellerId);
     List<Product> findExpiredActiveProducts(LocalDateTime now);
 }

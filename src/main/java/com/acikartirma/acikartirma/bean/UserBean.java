@@ -43,11 +43,8 @@ public class UserBean implements Serializable {
 
         if (user != null && user.getPassword() != null) {
             try {
-                // BCrypt, veritabanındaki şifreyi çözmeye çalışır.
                 isPasswordCorrect = BCrypt.checkpw(loginPassword, user.getPassword());
             } catch (IllegalArgumentException e) {
-                // Eğer veritabanındaki şifre BCrypt formatında değilse (eski düz metin şifreyse),
-                // sistemin çökmesini engeller ve şifreyi geçersiz (false) sayarız.
                 isPasswordCorrect = false;
             }
         }
@@ -56,13 +53,11 @@ public class UserBean implements Serializable {
             currentUser = user;
             loggedIn = true;
 
-            // SecurityFilter'ın (Güvenlik Filtresinin) bizi tanıması için bileti Session'a ekliyoruz
             FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("valid_user", user);
 
             return "index?faces-redirect=true";
         }
 
-        // Şifre yanlışsa VEYA eski düz metin formatındaysa, çökme olmadan bu uyarıyı verir.
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata", "Kullanıcı adı veya şifre hatalı."));
         return null;
     }
@@ -77,7 +72,6 @@ public class UserBean implements Serializable {
 
     public String register() {
         try {
-            // Şifreyi veritabanına kaydetmeden önce BCrypt ile şifreliyoruz
             String hashedPassword = BCrypt.hashpw(newUser.getPassword(), BCrypt.gensalt());
             newUser.setPassword(hashedPassword);
 
@@ -91,7 +85,18 @@ public class UserBean implements Serializable {
         }
     }
 
-    public void loadBalance() {
+    public void refreshCurrentUser() {
+        if (loggedIn && currentUser != null) {
+            User refreshed = userFacade.find(currentUser.getId());
+            if (refreshed != null) {
+                currentUser = refreshed;
+                FacesContext.getCurrentInstance().getExternalContext()
+                        .getSessionMap().put("valid_user", currentUser);
+            }
+        }
+    }
+
+    public String loadBalance() {
         if (loadAmount != null && loadAmount.compareTo(BigDecimal.ZERO) > 0) {
             currentUser.setBalance(currentUser.getBalance().add(loadAmount));
             userFacade.update(currentUser);
@@ -106,7 +111,9 @@ public class UserBean implements Serializable {
             loadAmount = null;
 
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Başarılı", "Bakiye başarıyla yüklendi."));
+            return "index?faces-redirect=true";
         }
+        return null;
     }
 
     public User getCurrentUser() { return currentUser; }

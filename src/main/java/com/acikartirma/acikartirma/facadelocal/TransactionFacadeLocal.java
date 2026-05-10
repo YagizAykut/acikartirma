@@ -5,10 +5,10 @@ import jakarta.ejb.Local;
 import java.util.List;
 
 @Local
+@SuppressWarnings("unused")
 public interface TransactionFacadeLocal {
     void create(Transaction transaction);
 
-    // HATAYI ÇÖZEN SATIR:
     void update(Transaction transaction);
 
     void remove(Transaction transaction);

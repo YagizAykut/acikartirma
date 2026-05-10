@@ -25,7 +25,7 @@ public class ProductQuestionFacade extends AbstractFacade<ProductQuestion> imple
 
     @Override
     public void update(ProductQuestion productQuestion) {
-        this.edit(productQuestion); // AbstractFacade'deki merge işlemini tetikler
+        this.edit(productQuestion);
     }
 
     @Override
@@ -37,7 +37,6 @@ public class ProductQuestionFacade extends AbstractFacade<ProductQuestion> imple
 
     @Override
     public List<ProductQuestion> findQuestionsByUser(Long userId) {
-        // Not: Eğer entity içinde 'buyer' alanı yoksa 'user' alanı üzerinden sorgu yaparız
         return em.createQuery("SELECT q FROM ProductQuestion q WHERE q.user.id = :userId ORDER BY q.createdAt DESC", ProductQuestion.class)
                 .setParameter("userId", userId)
                 .getResultList();

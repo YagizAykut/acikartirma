@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 @Stateless
+@SuppressWarnings("unused")
 public class CategoryFacade extends AbstractFacade<Category> implements CategoryFacadeLocal {
 
     @PersistenceContext

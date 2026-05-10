@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Named
 @ViewScoped
+@SuppressWarnings("unused")
 public class ProductBean implements Serializable {
 
     @EJB(beanName = "ProductFacade")
@@ -59,6 +60,9 @@ public class ProductBean implements Serializable {
     public void init() {
         refreshProductList();
         categories = categoryFacade.findAll();
+        if (userBean.isLoggedIn()) {
+            userBean.refreshCurrentUser();
+        }
     }
 
     public void refreshProductList() {
@@ -81,7 +85,7 @@ public class ProductBean implements Serializable {
         }
     }
 
-    public void saveProduct() {
+    public String saveProduct() {
         Product newProduct = new Product();
         newProduct.setName(name);
         newProduct.setDescription(description);
@@ -103,8 +107,8 @@ public class ProductBean implements Serializable {
         durationInMinutes = null;
         selectedCategoryId = null;
 
-        refreshProductList();
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Başarılı", "Ürün ihaleye çıkarıldı."));
+        return "index?faces-redirect=true";
     }
 
     public void placeBid(Product product) {
@@ -112,7 +116,6 @@ public class ProductBean implements Serializable {
             User currentUser = userBean.getCurrentUser();
             BigDecimal bidAmount = product.getNewBidAmount();
 
-            // 1. Veritabanından ürünün en taze halini al (Çoğalmayı önleyen en kritik adım)
             Product managedProduct = productFacade.find(product.getId());
 
             if (bidAmount == null || bidAmount.compareTo(managedProduct.getCurrentPrice()) <= 0) {
@@ -120,13 +123,7 @@ public class ProductBean implements Serializable {
                 return;
             }
 
-            if (currentUser.getBalance().compareTo(bidAmount) < 0) {
-                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata", "Yetersiz bakiye."));
-                return;
-            }
-
-            // 2. ESKİ KAZANANA İADE
-            if (managedProduct.getWinner() != null && !managedProduct.getWinner().getId().equals(currentUser.getId())) {
+            if (managedProduct.getWinner() != null) {
                 User oldWinner = managedProduct.getWinner();
                 oldWinner.setBalance(oldWinner.getBalance().add(managedProduct.getCurrentPrice()));
                 userFacade.update(oldWinner);
@@ -137,16 +134,23 @@ public class ProductBean implements Serializable {
                 refund.setType(TransactionType.BID_REFUND);
                 transactionFacade.create(refund);
 
-                Notification refundNotif = new Notification();
-                refundNotif.setUser(oldWinner);
-                refundNotif.setMessage("'" + managedProduct.getName() + "' ürünündeki teklifiniz geçildi. Bakiyeniz iade edildi.");
-                notificationFacade.create(refundNotif);
+                if (!oldWinner.getId().equals(currentUser.getId())) {
+                    Notification refundNotif = new Notification();
+                    refundNotif.setUser(oldWinner);
+                    refundNotif.setMessage("'" + managedProduct.getName() + "' ürünündeki teklifiniz geçildi. Bakiyeniz iade edildi.");
+                    notificationFacade.create(refundNotif);
+                }
             }
 
-            // 3. YENİ TEKLİF VERENİN BAKİYESİNİ DÜŞ
+            currentUser = userFacade.find(currentUser.getId());
+
+            if (currentUser.getBalance().compareTo(bidAmount) < 0) {
+                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Hata", "Yetersiz bakiye."));
+                return;
+            }
+
             currentUser.setBalance(currentUser.getBalance().subtract(bidAmount));
             userFacade.update(currentUser);
-            // Session'ı veritabanından tazeleyerek güncelle (8 TL görünmesi için)
             userBean.setCurrentUser(userFacade.find(currentUser.getId()));
 
             Transaction deduction = new Transaction();
@@ -155,12 +159,10 @@ public class ProductBean implements Serializable {
             deduction.setType(TransactionType.BID_DEDUCTION);
             transactionFacade.create(deduction);
 
-            // 4. ÜRÜNÜ GÜNCELLE
             managedProduct.setCurrentPrice(bidAmount);
             managedProduct.setWinner(currentUser);
             productFacade.update(managedProduct);
 
-            // 5. TEKLİF KAYDI OLUŞTUR
             Bid newBid = new Bid();
             newBid.setAmount(bidAmount);
             newBid.setBidder(currentUser);
@@ -171,7 +173,7 @@ public class ProductBean implements Serializable {
             filterProducts();
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Başarılı", "Teklifiniz alındı."));
 
-            AuctionWebSocket.broadcast("'" + managedProduct.getName() + "' için yeni teklif: " + bidAmount + " TL");
+            AuctionWebSocket.broadcast("'" + managedProduct.getName() + "' için yeni teklif: " + bidAmount + " TL", currentUser.getUsername());
 
         } catch (OptimisticLockException e) {
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_FATAL, "Sistem Uyarısı", "Başka bir kullanıcı teklif verdi. Sayfayı yenileyin."));
@@ -186,7 +188,6 @@ public class ProductBean implements Serializable {
         filterProducts();
     }
 
-    // Getter ve Setterlar
     public List<Product> getAllProducts() { return allProducts; }
     public void setAllProducts(List<Product> allProducts) { this.allProducts = allProducts; }
     public List<Category> getCategories() { return categories; }

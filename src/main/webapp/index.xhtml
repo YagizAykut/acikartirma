@@ -17,10 +17,10 @@
                     <h:messages globalOnly="true" errorClass="alert-error" infoClass="alert-info" />
 
                     <div class="card header-card">
-                        <div class="user-info">
+                        <h:panelGroup id="balanceWrapper" layout="block" styleClass="user-info">
                             <h2>Hoş geldin, #{userBean.currentUser.username}! 👋</h2>
                             <span class="balance-badge">Cüzdan: #{userBean.currentUser.balance} TL</span>
-                        </div>
+                        </h:panelGroup>
 
                         <h:form styleClass="action-group">
                             <div class="notif-container">
@@ -114,13 +114,14 @@
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <h:outputLabel value="Kategori Filtresi:" style="font-weight: bold; color: #555;" />
                                     <h:selectOneMenu value="#{productBean.filterCategoryId}" styleClass="form-control" style="width: 250px;">
-                                        <f:selectItem itemLabel="Tüm Kategorileri Göster" itemValue="#{null}" />
+                                        <f:selectItem itemLabel="Tüm Kategorileri Göster" itemValue="0" />
                                         <f:selectItems value="#{productBean.categories}" var="cat" itemLabel="#{cat.name}" itemValue="#{cat.id}" />
-                                        <f:ajax listener="#{productBean.filterProducts}" render="@form" />
+                                        <f:ajax listener="#{productBean.filterProducts}" render="auctionTablePanel" />
                                     </h:selectOneMenu>
                                 </div>
                             </div>
 
+                            <h:panelGroup id="auctionTablePanel" layout="block">
                             <h:dataTable value="#{productBean.allProducts}" var="product" styleClass="modern-table">
 
                                 <h:column>
@@ -165,14 +166,14 @@
                                     <h:panelGroup rendered="#{product.status eq 'ACTIVE' and product.seller.username ne userBean.currentUser.username}" style="display: flex; gap: 5px;">
                                         <h:inputText value="#{product.newBidAmount}" styleClass="form-control" style="width: 80px; padding: 6px;" />
                                         <h:commandButton value="Teklif İlet" action="#{productBean.placeBid(product)}" styleClass="btn btn-primary" style="padding: 6px 12px; margin-top: 0;">
-                                            <f:ajax execute="@form" render="@form" />
+                                            <f:ajax execute="@form" render="auctionTablePanel :balanceWrapper" />
                                         </h:commandButton>
                                     </h:panelGroup>
 
                                     <h:panelGroup rendered="#{product.status eq 'ACTIVE' and product.seller.username eq userBean.currentUser.username}">
                                         <h:outputText value="Senin Ürünün (İhalede)" styleClass="status-active" />
                                         <h:commandButton value="İptal Et / Sil" action="#{productBean.deleteProduct(product)}" styleClass="btn btn-danger" style="padding: 4px 8px; font-size: 12px; margin-top: 4px;" onclick="return confirm('Bu ihaleyi iptal etmek ve ürünü silmek istediğinize emin misiniz?');">
-                                            <f:ajax execute="@this" render="@form" />
+                                            <f:ajax execute="@this" render="auctionTablePanel" />
                                         </h:commandButton>
                                     </h:panelGroup>
 
@@ -189,6 +190,7 @@
                                 </h:column>
 
                             </h:dataTable>
+                            </h:panelGroup>
                         </h:form>
                     </div>
 
@@ -220,6 +222,7 @@
 
     <ui:define name="scripts">
         <script type="text/javascript">
+            //<![CDATA[
             function openImageModal(imageSrc) {
                 var modal = document.getElementById("imageModal");
                 var modalImg = document.getElementById("expandedImg");
@@ -235,24 +238,39 @@
             if ("#{userBean.loggedIn}" === "true") {
                 var wsUri = "ws://" + document.location.host + "/AcikArtirma-1.0-SNAPSHOT/auction";
                 var websocket = new WebSocket(wsUri);
+                var myUsername = "#{userBean.currentUser.username}";
+                var pendingReloadId = null;
 
                 websocket.onmessage = function(event) {
-                    if (event.data === "RELOAD_PAGE") {
-                        setTimeout(function() {
+                    var raw = event.data;
+                    var sep = raw.indexOf("|");
+                    var sender = sep >= 0 ? raw.substring(0, sep) : "";
+                    var message = sep >= 0 ? raw.substring(sep + 1) : raw;
+
+                    // Kendi teklifimden gelen mesajı yok say — AJAX zaten panelimi güncelledi
+                    if (sender !== "" && sender === myUsername) {
+                        return;
+                    }
+
+                    if (message === "RELOAD_PAGE") {
+                        if (pendingReloadId) clearTimeout(pendingReloadId);
+                        pendingReloadId = setTimeout(function() {
                             window.location.reload();
                         }, 1500);
                         return;
                     }
 
                     var toast = document.getElementById("notificationToast");
-                    toast.innerHTML = event.data;
+                    toast.innerHTML = message;
                     toast.style.display = "block";
 
-                    setTimeout(function() {
+                    if (pendingReloadId) clearTimeout(pendingReloadId);
+                    pendingReloadId = setTimeout(function() {
                         window.location.reload();
-                    }, 3000);
+                    }, 6000);
                 };
             }
+            //]]>
         </script>
     </ui:define>
 

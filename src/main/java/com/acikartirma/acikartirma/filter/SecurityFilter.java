@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 @WebFilter(filterName = "SecurityFilter", urlPatterns = {"*.xhtml"})
+@SuppressWarnings("unused")
 public class SecurityFilter implements Filter {
 
     @Override

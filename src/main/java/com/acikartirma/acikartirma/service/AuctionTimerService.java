@@ -22,7 +22,7 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class AuctionTimerService {
 
-    @EJB(beanName = "ProductFacadeProxy") // Buraya da açıkça Proxy'i işaret ettik
+    @EJB(beanName = "ProductFacadeProxy")
     private ProductFacadeLocal productFacade;
 
     @EJB
@@ -34,7 +34,7 @@ public class AuctionTimerService {
     @EJB
     private NotificationFacadeLocal notificationFacade;
 
-    @Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
+    @Schedule(hour = "*", minute = "*", second = "*/3", persistent = false)
     public void checkExpiredAuctions() {
         LocalDateTime now = LocalDateTime.now();
         List<Product> expiredProducts = productFacade.findExpiredActiveProducts(now);
@@ -78,7 +78,6 @@ public class AuctionTimerService {
             productFacade.update(product);
         }
 
-        // Değişiklik varsa tüm bağlı kullanıcılara anlık sayfayı yenileme sinyali gönderiliyor
         if (hasChanges) {
             AuctionWebSocket.broadcast("RELOAD_PAGE");
         }

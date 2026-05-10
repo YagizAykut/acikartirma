@@ -28,7 +28,6 @@ public class BidFacade extends AbstractFacade<Bid> implements BidFacadeLocal {
         this.edit(bid);
     }
 
-    // Arayüzdeki isme (findBidsByProduct) göre güncellendi
     @Override
     public List<Bid> findBidsByProduct(Long productId) {
         return em.createQuery("SELECT b FROM Bid b WHERE b.product.id = :productId ORDER BY b.amount DESC", Bid.class)
@@ -36,8 +35,6 @@ public class BidFacade extends AbstractFacade<Bid> implements BidFacadeLocal {
                 .getResultList();
     }
 
-    // HATA MESAJINDAKİ ASIL DÜZELTME:
-    // Arayüz bu metodun ismini 'findBidsByUser' olarak bekliyor.
     @Override
     public List<Bid> findBidsByUser(Long userId) {
         return em.createQuery("SELECT b FROM Bid b WHERE b.bidder.id = :userId", Bid.class)

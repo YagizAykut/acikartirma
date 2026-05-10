@@ -32,9 +32,11 @@ public class ProfileBean implements Serializable {
 
     @PostConstruct
     public void init() {
+        if (userBean.isLoggedIn()) {
+            userBean.refreshCurrentUser();
+        }
         User currentUser = userBean.getCurrentUser();
         if (currentUser != null) {
-
             transactions = transactionFacade.findTransactionsByUser(currentUser.getId());
             bids = bidFacade.findBidsByUser(currentUser.getId());
         }

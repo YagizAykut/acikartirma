@@ -3,6 +3,7 @@ package com.acikartirma.acikartirma.facade;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public abstract class AbstractFacade<T> {
 
     private Class<T> entityClass;
@@ -17,7 +18,6 @@ public abstract class AbstractFacade<T> {
         getEntityManager().persist(entity);
     }
 
-    // KRİTİK: merge kullanımı ürünün çoğalmasını engeller, mevcut ID'yi günceller.
     public void edit(T entity) {
         getEntityManager().merge(entity);
     }

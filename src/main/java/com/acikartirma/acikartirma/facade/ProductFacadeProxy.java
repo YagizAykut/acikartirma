@@ -48,7 +48,6 @@ public class ProductFacadeProxy implements ProductFacadeLocal {
         return realFacade.findExpiredActiveProducts(now);
     }
 
-    // ARAYÜZDE OLUP BURADA EKSİK OLAN METOT EKLENDİ
     @Override
     public List<Product> findBySeller(Long sellerId) {
         return realFacade.findBySeller(sellerId);

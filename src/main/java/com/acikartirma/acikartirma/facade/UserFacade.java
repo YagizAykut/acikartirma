@@ -28,7 +28,6 @@ public class UserFacade extends AbstractFacade<User> implements UserFacadeLocal 
         this.edit(user);
     }
 
-    // @Override etiketini sildik, isim uyuşmazlığı varsa hata vermez
     public User findByUsername(String username) {
         try {
             return em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
@@ -39,7 +38,6 @@ public class UserFacade extends AbstractFacade<User> implements UserFacadeLocal 
         }
     }
 
-    // @Override etiketini sildik, isim uyuşmazlığı varsa hata vermez
     public User validateLogin(String username, String password) {
         try {
             return em.createQuery("SELECT u FROM User u WHERE u.username = :username AND u.password = :password", User.class)

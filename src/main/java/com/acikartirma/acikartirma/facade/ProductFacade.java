@@ -26,7 +26,6 @@ public class ProductFacade extends AbstractFacade<Product> implements ProductFac
 
     @Override
     public void update(Product product) {
-        // AbstractFacade içindeki merge işlemini tetikler
         this.edit(product);
     }
 

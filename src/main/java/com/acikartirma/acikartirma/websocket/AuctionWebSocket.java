@@ -26,11 +26,16 @@ public class AuctionWebSocket {
     }
 
     public static void broadcast(String message) {
+        broadcast(message, null);
+    }
+
+    public static void broadcast(String message, String senderUsername) {
+        String fullMessage = (senderUsername != null ? senderUsername : "") + "|" + message;
         synchronized (sessions) {
             for (Session session : sessions) {
                 if (session.isOpen()) {
                     try {
-                        session.getBasicRemote().sendText(message);
+                        session.getBasicRemote().sendText(fullMessage);
                     } catch (IOException e) {
                         System.out.println("WebSocket Mesaj Gönderme Hatası: " + e.getMessage());
                     }
